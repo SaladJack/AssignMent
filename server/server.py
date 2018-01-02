@@ -1,147 +1,125 @@
-# chat_server.py
-import json
-import sys, socket, select
+#!/bin/env python
+# -*- coding:utf8 -*-
 
-from protocol import Protocol, CmdProtocol, RspProtocol
+"""
+server select
+"""
 
-HOST = ''
-SOCKET_LIST = []
-ROOM_DEFAULT_ID = 0
-ROOM_LIST = [[]]
-RECV_BUFFER = 4096
-PORT = 5554
+import sys
+import time
+import socket
+import select
+import logging
+import Queue
+
+g_select_timeout = 10
 
 
-def chat_server():
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.setblocking(False)
-    server_socket.settimeout(3)
-    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server_socket.bind((HOST, PORT))
-    server_socket.listen(10)
+class Server(object):
+    def __init__(self, host='localhost', port=33333, timeout=2, client_nums=10):
+        self.__host = host
+        self.__port = port
+        self.__timeout = timeout
+        self.__client_nums = client_nums
+        self.__buffer_size = 1024
 
-    # add server socket object to the list of readable connections
-    SOCKET_LIST.append(server_socket)
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.setblocking(False)
+        self.server.settimeout(self.__timeout)
+        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)  # keepalive
+        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # 端口复用
+        server_host = (self.__host, self.__port)
+        try:
+            self.server.bind(server_host)
+            self.server.listen(self.__client_nums)
+        except:
+            raise
 
-    print "Chat server started on port " + str(PORT)
+        self.inputs = [self.server]  # select 接收文件描述符列表
+        self.outputs = []  # 输出文件描述符列表
+        self.message_queues = {}  # 消息队列
+        self.client_info = {}
 
-    while 1:
+    def run(self):
+        while True:
+            readable, writable, exceptional = select.select(self.inputs, self.outputs, self.inputs, g_select_timeout)
+            if not (readable or writable or exceptional):
+                continue
 
-        # get the list sockets which are ready to be read through select
-        # 4th arg, time_out  = 0 : poll and never block
-        ready_to_read, ready_to_write, in_error = select.select(SOCKET_LIST, [], [], 0)
+            for s in readable:
+                if s is self.server:  # 是客户端连接
+                    connection, client_address = s.accept()
+                    # print "connection", connection
+                    print "%s connect." % str(client_address)
+                    connection.setblocking(0)  # 非阻塞
+                    self.inputs.append(connection)  # 客户端添加到inputs
+                    self.client_info[connection] = str(client_address)
+                    self.message_queues[connection] = Queue.Queue()  # 每个客户端一个消息队列
 
-        for sock in ready_to_read:
-            # a new connection request recieved
-            if sock == server_socket:
-                sockfd, addr = server_socket.accept()
-                SOCKET_LIST.append(sockfd)
-                print "Client (%s, %s) connected" % addr
-
-            # a message from a client, not a new connection
-            else:
-                # process data recieved from client,
-                try:
-                    # receiving data from the socket.
-                    print "socket receive"
-                    data = sock.recv(RECV_BUFFER)
-                    print data,type(data)
+                else:  # 是client, 数据发送过来
+                    try:
+                        data = s.recv(self.__buffer_size)
+                    except:
+                        err_msg = "Client Error!"
+                        logging.error(err_msg)
                     if data:
-                        data_dict = json.loads(data)
-                        p = Protocol(data_dict)
-                        print data_dict["code"]
-                        #p = Protocol.toObject(data)
-                        print type(p)
-                        if p.code == CmdProtocol.CMD_CREATE_ROOM:
-                            room_id = create_room()
-                            enter_room(sock, room_id)
+                        # print data
+                        data = "%s %s say: %s" % (time.strftime("%Y-%m-%d %H:%M:%S"), self.client_info[s], data)
+                        self.message_queues[s].put(data)  # 队列添加消息
 
-                            rsp = Protocol(0, 0, room_id, "", RspProtocol.RSP_CREATE_ROOM_SUCCESS)
-                            sock.send(rsp.toJSON())
-                        elif p.code == CmdProtocol.CMD_ENTER_ROOM:
-                            enter_room(sock,p.room_id)
-                            send_msg_in_room(server_socket, sock, p.room_id ,"Client (%s, %s) enter room" % addr)
+                        if s not in self.outputs:  # 要回复消息
+                            self.outputs.append(s)
+                    else:  # 客户端断开
+                        # Interpret empty result as closed connection
+                        print "Client:%s Close." % str(self.client_info[s])
+                        if s in self.outputs:
+                            self.outputs.remove(s)
+                        self.inputs.remove(s)
+                        s.close()
+                        del self.message_queues[s]
+                        del self.client_info[s]
 
-                            rsp = Protocol(0, 0, room_id, "", RspProtocol.RSP_ENTER_ROOM_SUCCESS)
-                            sock.send(rsp.toJSON())
-                        elif p.code == CmdProtocol.CMD_QUIT_ROOM:
-                            quit_room(sock, CmdProtocol.CMD_QUIT_ROOM)
-                            send_msg_in_room(server_socket, sock, p.room_id,"Client (%s, %s) quit room" % addr)
-                        else:
-                            # client data incoming, broadcast to all clients
-                            send_msg_in_lobby(server_socket, sock, p.msg)
-                    else:
-                        # remove the socket that's broken
-                        print "data == null"
-                        if sock in SOCKET_LIST:
-                            SOCKET_LIST.remove(sock)
-                            # at this stage, no data means probably the connection has been broken
-                            #send_msg_in_lobby(server_socket, sock, "Client eee(%s, %s) is offline\n" % addr)
+            for s in writable:  # outputs 有消息就要发出去了
+                try:
+                    next_msg = self.message_queues[s].get_nowait()  # 非阻塞获取
+                except Queue.Empty:
+                    err_msg = "Output Queue is Empty!"
+                    # g_logFd.writeFormatMsg(g_logFd.LEVEL_INFO, err_msg)
+                    self.outputs.remove(s)
+                except Exception, e:  # 发送的时候客户端关闭了则会出现writable和readable同时有数据，会出现message_queues的keyerror
+                    err_msg = "Send Data Error! ErrMsg:%s" % str(e)
+                    logging.error(err_msg)
+                    if s in self.outputs:
+                        self.outputs.remove(s)
+                else:
+                    for cli in self.client_info:  # 发送给其他客户端
+                        if cli is not s:
+                            try:
+                                cli.sendall(next_msg)
+                            except Exception, e:  # 发送失败就关掉
+                                err_msg = "Send Data to %s  Error! ErrMsg:%s" % (str(self.client_info[cli]), str(e))
+                                logging.error(err_msg)
+                                print "Client: %s Close Error." % str(self.client_info[cli])
+                                if cli in self.inputs:
+                                    self.inputs.remove(cli)
+                                    cli.close()
+                                if cli in self.outputs:
+                                    self.outputs.remove(s)
+                                if cli in self.message_queues:
+                                    del self.message_queues[s]
+                                del self.client_info[cli]
 
-                # exception
-                except:
-                    print "Client (%s, %s) is offline\n" % addr
-                    send_msg_in_lobby(server_socket, sock, "Client (%s, %s) is offline\n" % addr)
-                    continue
-
-    server_socket.close()
-
-# create room and return room_id
-def create_room():
-    for i in range(len(ROOM_LIST)):
-        if len(ROOM_LIST[i]) == 0:
-            return i
-    new_room = []
-    ROOM_LIST.append(new_room)
-    return len(ROOM_LIST) - 1
-
-
-def enter_room(socket,room_id):
-    ROOM_LIST[room_id].append(socket)
-    return 0
-
-def quit_room(socket,room_id):
-    ROOM_LIST[room_id].remove(socket)
-    return 0
-
-
+            for s in exceptional:
+                logging.error("Client:%s Close Error." % str(self.client_info[cli]))
+                if s in self.inputs:
+                    self.inputs.remove(s)
+                    s.close()
+                if s in self.outputs:
+                    self.outputs.remove(s)
+                if s in self.message_queues:
+                    del self.message_queues[s]
+                del self.client_info[s]
 
 
-# broadcast chat messages to all connected clients except sock
-def send_msg_in_lobby(server_socket, to_socket, message):
-    for socket in SOCKET_LIST:
-        # send the message only to peer
-        if socket != server_socket and socket != to_socket:
-            try:
-                p = Protocol(msg=message)
-                socket.send(p)
-            except:
-                # broken socket connection
-                socket.close()
-                # broken socket, remove it
-                if socket in SOCKET_LIST:
-                    SOCKET_LIST.remove(socket)
-
-def send_msg_in_room(server_socket,sender,room_id,message):
-    for socket in ROOM_LIST[room_id]:
-        # send the message only to peer
-        if socket != server_socket and socket != sender:
-            try:
-                p = Protocol()
-                p.room_id = room_id
-                p.code = 0
-                p.msg = message
-                socket.send(message)
-            except:
-                # broken socket connection
-                socket.close()
-                # broken socket, remove it
-                if socket in SOCKET_LIST:
-                    ROOM_LIST[room_id].remove(socket)
-                    SOCKET_LIST.remove(socket)
-
-
-
-if __name__ == "__main__":
-    sys.exit(chat_server())
+if "__main__" == __name__:
+    Server().run()
