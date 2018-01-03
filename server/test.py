@@ -3,10 +3,9 @@ import sys
 from dbMgr import DBMgr
 import json
 
-from protocol import Protocol
+from p4s import P4S
 
 if __name__ == "__main__":
-    #
     # dbMgr = DBMgr()
     #
     # cmd_type = sys.argv[1]
@@ -33,10 +32,14 @@ if __name__ == "__main__":
     # print decode_json
 
 
-    p = Protocol()
-    print type(p.toJSON())
+    # p = P4S()
+    # print type(p.toJSON())
+    #
+    # print type(json.loads(p.toJSON()))
+    a = {1,2,3}
+    print a
 
-    print type(json.loads(p.toJSON()))
+
 
 
 

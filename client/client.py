@@ -31,7 +31,6 @@ class Client(object):
 
     def __connect(self):
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # client.bind(('0.0.0.0', 12345,))
         client.setblocking(True)
         client.settimeout(self.__timeout)
         client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # 端口复用

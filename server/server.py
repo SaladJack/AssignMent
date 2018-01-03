@@ -12,6 +12,9 @@ import select
 import logging
 import Queue
 
+from dbMgr import DBMgr
+from p4s import P4S,P4SvrType,P4SvrRsp
+
 g_select_timeout = 10
 
 
@@ -39,6 +42,10 @@ class Server(object):
         self.outputs = []  # 输出文件描述符列表
         self.message_queues = {}  # 消息队列
         self.client_info = {}
+        self.client_cur_id = 1
+        self.room_list = {} # 房间列表
+        self.room_cur_id = 1
+
 
     def run(self):
         while True:
@@ -53,7 +60,7 @@ class Server(object):
                     print "%s connect." % str(client_address)
                     connection.setblocking(0)  # 非阻塞
                     self.inputs.append(connection)  # 客户端添加到inputs
-                    self.client_info[connection] = str(client_address)
+                    self.client_info[connection] = [str(client_address), False, 0] # [地址,是否已登录,用户id]
                     self.message_queues[connection] = Queue.Queue()  # 每个客户端一个消息队列
 
                 else:  # 是client, 数据发送过来
@@ -92,25 +99,47 @@ class Server(object):
                     if s in self.outputs:
                         self.outputs.remove(s)
                 else:
-                    for cli in self.client_info:  # 发送给其他客户端
-                        if cli is not s:
-                            try:
-                                cli.sendall(next_msg)
-                            except Exception, e:  # 发送失败就关掉
-                                err_msg = "Send Data to %s  Error! ErrMsg:%s" % (str(self.client_info[cli]), str(e))
-                                logging.error(err_msg)
-                                print "Client: %s Close Error." % str(self.client_info[cli])
-                                if cli in self.inputs:
-                                    self.inputs.remove(cli)
-                                    cli.close()
-                                if cli in self.outputs:
-                                    self.outputs.remove(s)
-                                if cli in self.message_queues:
-                                    del self.message_queues[s]
-                                del self.client_info[cli]
+                    p_c2s = P4S.toObject(next_msg)
+
+                    if p_c2s.type is P4SvrType.TYPE_LOBBY_CHAT:
+                        self.send_msg_to_lobby(s, p_c2s.toJSON())
+
+                    elif p_c2s.type is P4SvrType.TYPE_PRIVATE_CHAT:
+                        receiver = self.usr_id_2_connection(p_c2s.to_id)
+                        self.send_msg_to_usr(s, receiver, p_c2s.toJSON())
+
+                    elif p_c2s.type is P4SvrType.TYPE_ROOM_CHAT:
+                        self.send_msg_to_room(s, p_c2s.room_id, p_c2s.toJSON())
+
+                    elif p_c2s.type is P4SvrType.TYPE_CREATE_ROOM:
+                        p_s2c = self.handle_create_room(s)
+                        self.send_msg_to_usr(s, s, p_s2c)
+
+                    elif p_c2s.type is P4SvrType.TYPE_QUIT_ROOM:
+                        p_s2c = self.handle_quit_room(s,p_c2s.room_id)
+                        self.send_msg_to_usr(s, s, p_s2c)
+
+                    elif p_c2s.type is P4SvrType.TYPE_ENTER_ROOM:
+                        p_s2c = self.handle_enter_room(s, p_c2s.room_id)
+                        self.send_msg_to_usr(s, s, p_s2c)
+
+                    elif p_c2s.type is P4SvrType.TYPE_SIGN_IN:
+                        usr_name, usr_pwd = self.parse_usr_name_and_pwd(p_c2s.msg)
+                        p_s2c = self.handle_sign_in(s, usr_name, usr_pwd)
+                        self.send_msg_to_usr(s, s, p_s2c.toJSON())
+
+                    elif p_c2s.type is P4SvrType.TYPE_SIGN_OUT:
+                        usr_name = self.parse_usr_name(p_c2s.msg)
+                        p_s2c = self.handle_sign_out(s, usr_name)
+                        self.send_msg_to_usr(s, s, p_s2c.toJSON())
+
+                    elif p_c2s.type is P4SvrType.TYPE_REGISTER:
+                        usr_name, usr_pwd = self.parse_usr_name_and_pwd(p_c2s.msg)
+                        p_s2c = self.handle_register(usr_name, usr_pwd)
+                        self.send_msg_to_usr(s, s, p_s2c)
 
             for s in exceptional:
-                logging.error("Client:%s Close Error." % str(self.client_info[cli]))
+                #logging.error("Client:%s Close Error." % str(self.client_info[cli]))
                 if s in self.inputs:
                     self.inputs.remove(s)
                     s.close()
@@ -119,6 +148,115 @@ class Server(object):
                 if s in self.message_queues:
                     del self.message_queues[s]
                 del self.client_info[s]
+
+                for room_id, room_connection_set in self.room_list.items():
+                    if room_connection_set.__contains__(s):
+                        room_connection_set.remove(s)
+
+    def parse_usr_name(self,msg):
+        return ''
+
+    def parse_usr_name_and_pwd(self, msg):
+        return '',''
+
+    def handle_sign_in(self, connection, usr_name, usr_pwd):
+        p_s2c = P4S()
+        p_s2c.result_id = DBMgr().sign_in(usr_name,usr_pwd)
+        if p_s2c.result_id is 0:
+            self.client_info[connection][1] = True
+            self.client_info[connection][2] = self.client_cur_id
+            self.client_cur_id += 1
+        return p_s2c
+
+
+    def handle_sign_out(self,connection, usr_name):
+        p_s2c = P4S()
+        p_s2c.result_id = DBMgr().sign_out(usr_name)
+        if p_s2c.result_id is 0:
+            self.client_info[connection][1] = False
+        return p_s2c
+
+    def handle_register(self, usr_name, usr_pwd):
+        p_s2c = P4S()
+        p_s2c.result_id = DBMgr().register(usr_name, usr_pwd)
+        return p_s2c
+
+
+    def handle_create_room(self, connection):
+        self.room_list[self.room_cur_id] = {connection}
+        p_s2c = P4S()
+        p_s2c.result_id = 0
+        p_s2c.type = P4SvrType.TYPE_CREATE_ROOM
+        p_s2c.room_id = self.room_cur_id
+        self.room_cur_id += 1
+        return p_s2c
+
+    def handle_enter_room(self, connection, room_id):
+        self.room_list[room_id].add(connection)
+        p_s2c = P4S()
+        p_s2c.result_id = 0
+        p_s2c.type = P4SvrType.TYPE_ENTER_ROOM
+        p_s2c.room_id = room_id
+        return p_s2c
+
+    def handle_quit_room(self, connection, room_id):
+        self.room_list[room_id].remove(connection)
+        p_s2c = P4S()
+        p_s2c.result_id = 0
+        p_s2c.type = P4SvrType.TYPE_QUIT_ROOM
+        p_s2c.room_id = room_id
+        return p_s2c
+
+    def send_msg_to_lobby(self, sender, msg):
+        for receiver in self.client_info:  # 发送给其他客户端
+            if receiver is not sender:
+                try:
+                    receiver.sendall(msg)
+                except Exception, e:  # 发送失败就关掉
+                    self.handle_exception(sender, receiver, e)
+
+    def send_msg_to_usr(self, sender, receiver, msg):
+        try:
+            receiver.sendall(msg)
+        except Exception,e:
+            self.handle_exception(sender, receiver, e)
+
+
+    def send_msg_to_room(self, sender, room_id, msg):
+        room_connect_set = self.room_list[room_id]
+        for receiver in room_connect_set:
+            if receiver is not sender:
+                try:
+                    receiver.sendall(msg)
+                except Exception, e:
+                    self.handle_exception(sender, receiver, e)
+
+
+    def usr_id_2_connection(self,usr_id):
+        for k, v in self.client_info.items():
+            if v[2] is usr_id:
+                return k
+        return None
+
+
+    def handle_exception(self, sender, receiver, e):
+        err_msg = "Send Data to %s  Error! ErrMsg:%s" % (str(self.client_info[receiver]), str(e))
+        logging.error(err_msg)
+        print "Client: %s Close Error." % str(self.client_info[receiver])
+        if receiver in self.inputs:
+            self.inputs.remove(receiver)
+            receiver.close()
+        if receiver in self.outputs:
+            self.outputs.remove(sender)
+        if receiver in self.message_queues:
+            del self.message_queues[sender]
+        del self.client_info[receiver]
+
+        for room_id,room_connection_set in self.room_list.items():
+            if room_connection_set.__contains__(receiver):
+                room_connection_set.remove(receiver)
+
+
 
 
 if "__main__" == __name__:

@@ -1,4 +1,3 @@
-import fileinput
 class DBMgr(object):
 
     __instance = None
@@ -17,10 +16,7 @@ class DBMgr(object):
             for d in f:
                 for kv in [d.strip().split(' ')]:
                     if usr_name == kv[0] and usr_pwd == kv[1]:
-                        if '0' == kv[2]:
-                            return DBState.SIGN_IN_SUCCESS
-                        else:
-                            return DBState.SIGN_IN_USR_ALREADY_ONLINE
+                        return 0
         return DBState.SIGN_IN_USR_NOT_FOUND
 
     def sign_out(self,usr_name):
@@ -28,10 +24,7 @@ class DBMgr(object):
             for d in f:
                 for kv in [d.strip().split(' ')]:
                     if usr_name == kv[0]:
-                        if '1' == kv[2]:
-                            return DBState.SIGN_OUT_SUCCESS
-                        else:
-                            return DBState.SIGN_OUT_USR_ALREADY_OFFLINE
+                        return 0
         return DBState.SIGN_OUT_USR_NOT_FOUND
 
     def register(self, usr_name, usr_pwd):
@@ -47,7 +40,7 @@ class DBMgr(object):
                         return DBState.REGISTER_USR_ALREADY_EXIST
             f.write(usr_name + ' ' + usr_pwd + ' 0\n')
 
-        return DBState.REGISTER_SUCCESS
+        return 0
 
     def check_info_valid(self, info):
         if info is None:
@@ -56,15 +49,12 @@ class DBMgr(object):
 
 
 class DBState(object):
-    SIGN_IN_SUCCESS = 0
     SIGN_IN_USR_ALREADY_ONLINE = 1
     SIGN_IN_USR_NOT_FOUND = 2
 
-    SIGN_OUT_SUCCESS = 0
     SIGN_OUT_USR_ALREADY_OFFLINE = 1
     SIGN_OUT_USR_NOT_FOUND = 2
 
-    REGISTER_SUCCESS = 0
     REGISTER_USR_ALREADY_EXIST = 1
     REGISTER_USR_NAME_NOT_VALID = 2
     REGISTER_USR_PWD_NOT_VALID = 3
