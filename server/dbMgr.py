@@ -1,3 +1,6 @@
+import os
+
+
 class DBMgr(object):
 
     __instance = None
@@ -8,7 +11,7 @@ class DBMgr(object):
         return DBMgr.__instance
 
 
-    def __init__(self,db_file_name='db'):
+    def __init__(self,db_file_name='server/db'):
         self.db_file_name = db_file_name
 
     def sign_in(self,usr_name,usr_pwd):
@@ -46,7 +49,9 @@ class DBMgr(object):
         if info is None:
             return False
         return True
-
+if __name__ == '__main__':
+    print os.getcwd()
+    print DBMgr().sign_in('netease1','123')
 
 class DBState(object):
     SIGN_IN_USR_ALREADY_ONLINE = 1

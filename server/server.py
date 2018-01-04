@@ -66,25 +66,25 @@ class Server(object):
                 else:  # 是client, 数据发送过来
                     try:
                         data = s.recv(self.__buffer_size)
-                    except:
-                        err_msg = "Client Error!"
-                        logging.error(err_msg)
-                    if data:
-                        # print data
-                        data = "%s %s say: %s" % (time.strftime("%Y-%m-%d %H:%M:%S"), self.client_info[s], data)
-                        self.message_queues[s].put(data)  # 队列添加消息
+                        if data:
+                            # print data
+                            # data = "%s %s say: %s" % (time.strftime("%Y-%m-%d %H:%M:%S"), self.client_info[s], data)
+                            self.message_queues[s].put(data)  # 队列添加消息
 
-                        if s not in self.outputs:  # 要回复消息
-                            self.outputs.append(s)
-                    else:  # 客户端断开
-                        # Interpret empty result as closed connection
-                        print "Client:%s Close." % str(self.client_info[s])
-                        if s in self.outputs:
-                            self.outputs.remove(s)
-                        self.inputs.remove(s)
-                        s.close()
-                        del self.message_queues[s]
-                        del self.client_info[s]
+                            if s not in self.outputs:  # 要回复消息
+                                self.outputs.append(s)
+                        else:  # 客户端断开
+                            # Interpret empty result as closed connection
+                            print "Client:%s Close." % str(self.client_info[s])
+                            if s in self.outputs:
+                                self.outputs.remove(s)
+                            self.inputs.remove(s)
+                            s.close()
+                            del self.message_queues[s]
+                            del self.client_info[s]
+                    except Exception, e:
+                        self.handle_exception(s,s,e)
+
 
             for s in writable:  # outputs 有消息就要发出去了
                 try:
@@ -124,8 +124,10 @@ class Server(object):
                         self.send_msg_to_usr(s, s, p_s2c)
 
                     elif p_c2s.type is P4SvrType.TYPE_SIGN_IN:
+                        print 'rcv sign in pkg'
                         usr_name, usr_pwd = self.parse_usr_name_and_pwd(p_c2s.msg)
                         p_s2c = self.handle_sign_in(s, usr_name, usr_pwd)
+                        print 'sign in resultId:%s' % p_s2c.result_id
                         self.send_msg_to_usr(s, s, p_s2c.toJSON())
 
                     elif p_c2s.type is P4SvrType.TYPE_SIGN_OUT:
@@ -154,13 +156,17 @@ class Server(object):
                         room_connection_set.remove(s)
 
     def parse_usr_name(self,msg):
-        return ''
+        return msg
 
     def parse_usr_name_and_pwd(self, msg):
-        return '',''
+        # format: xxx:yyy
+        fore = msg.find(':', 0, len(msg))
+        return msg[0:fore], msg[fore + 1:len(msg)]
+
 
     def handle_sign_in(self, connection, usr_name, usr_pwd):
         p_s2c = P4S()
+        p_s2c.type = P4SvrType.TYPE_SIGN_IN
         p_s2c.result_id = DBMgr().sign_in(usr_name,usr_pwd)
         if p_s2c.result_id is 0:
             self.client_info[connection][1] = True
@@ -171,6 +177,7 @@ class Server(object):
 
     def handle_sign_out(self,connection, usr_name):
         p_s2c = P4S()
+        p_s2c.type = P4SvrType.TYPE_SIGN_OUT
         p_s2c.result_id = DBMgr().sign_out(usr_name)
         if p_s2c.result_id is 0:
             self.client_info[connection][1] = False
@@ -178,6 +185,7 @@ class Server(object):
 
     def handle_register(self, usr_name, usr_pwd):
         p_s2c = P4S()
+        p_s2c.type = P4SvrType.TYPE_REGISTER
         p_s2c.result_id = DBMgr().register(usr_name, usr_pwd)
         return p_s2c
 
@@ -217,7 +225,7 @@ class Server(object):
 
     def send_msg_to_usr(self, sender, receiver, msg):
         try:
-            receiver.sendall(msg)
+             receiver.sendall(msg)
         except Exception,e:
             self.handle_exception(sender, receiver, e)
 
@@ -240,9 +248,9 @@ class Server(object):
 
 
     def handle_exception(self, sender, receiver, e):
-        err_msg = "Send Data to %s  Error! ErrMsg:%s" % (str(self.client_info[receiver]), str(e))
-        logging.error(err_msg)
-        print "Client: %s Close Error." % str(self.client_info[receiver])
+        # err_msg = "Send Data to %s  Error! ErrMsg:%s" % (str(self.client_info[receiver][0]), str(e))
+        # logging.error(err_msg)
+        print "Client: %s Close Error." % str(self.client_info[receiver][0])
         if receiver in self.inputs:
             self.inputs.remove(receiver)
             receiver.close()

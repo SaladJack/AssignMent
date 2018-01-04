@@ -1,9 +1,4 @@
-import sys
 
-from dbMgr import DBMgr
-import json
-
-from p4s import P4S
 
 if __name__ == "__main__":
     # dbMgr = DBMgr()
@@ -36,8 +31,14 @@ if __name__ == "__main__":
     # print type(p.toJSON())
     #
     # print type(json.loads(p.toJSON()))
-    a = {1,2,3}
-    print a
+    str = 'aaa:bbb'
+    with open('db', 'r+') as f:
+        for d in f:
+            for kv in [d.strip().split(' ')]:
+                print '%s' % kv
+
+
+
 
 
 

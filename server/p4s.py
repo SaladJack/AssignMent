@@ -11,29 +11,22 @@ class P4S(object):
         self.type = 0
         self.result_id = 0
 
-    def __init__(self, data):
+    def loadDict(self,data):
         self.msg = data["msg"]
         self.from_id = data["from_id"]
-        self.to_id = data["data_id"]
+        self.to_id = data["to_id"]
         self.room_id = data["room_id"]
         self.type = data["type"]
         self.result_id = data['result_id']
-
-    def __init__(self, from_id=0, to_id=0, room_id=0, msg="", type=0):
-        self.from_id = from_id
-        self.to_id = to_id
-        self.room_id = room_id
-        self.msg = msg
-        self.type = type
-
 
     def toJSON(self):
         return json.dumps(self,default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
     @staticmethod
-    def toObject(self,data):
+    def toObject(data):
         data_dict = json.loads(data)
-        p = P4S(data_dict)
+        p = P4S()
+        p.loadDict(data_dict)
         return p
 
     def isLobbyChat(self):
