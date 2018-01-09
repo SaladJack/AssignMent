@@ -18,6 +18,11 @@ class Client(object):
     COMMAND_ENTER_ROOM = 'enter room'
     COMMAND_QUIT_ROOM = 'quit room'
 
+    # 用户状态码
+    IN_LOBBY = 0
+    IN_PRIVATE = 1
+    IN_ROOM = 2
+
 
     def __init__(self, host, port=33333, timeout=1, reconnect=2):
         self.__host = host
@@ -29,7 +34,10 @@ class Client(object):
         self.__lock = threading.Lock()
         self.__online = False
         self.signining = False # 正在登录
-        self.cur_state = 0 # 0:lobby, 1:privat 2:room
+        self.usr_id = 0
+        self.cur_state = Client.IN_LOBBY # 0:lobby, 1:private 2:room
+        self.cur_room_id = 0
+        self.to_usr_id = 0
         self.usr_name = ''
     @property
     def flag(self):
@@ -81,10 +89,61 @@ class Client(object):
                         self.flag = 0
                     break
 
-                p_c2s = P4C()
-                p_c2s.type = P4CliType.TYPE_LOBBY_CHAT
-                p_c2s.msg = data
-                self.client.sendall(p_c2s.toJSON())
+                if data.startswith(Client.COMMAND_CREATE_ROOM):
+                    p_c2s = P4C()
+                    p_c2s.type = P4CliType.TYPE_CREATE_ROOM
+                    self.client.sendall(p_c2s.toJSON())
+
+                elif data.startswith(Client.COMMAND_ENTER_ROOM):
+                    room_id = self.parse_room_id(Client.COMMAND_ENTER_ROOM, p_c2s.msg)
+                    if isinstance(room_id, int):
+                        if room_id >= 0:
+                            p_c2s = P4C()
+                            p_c2s.type = P4CliType.TYPE_CREATE_ROOM
+                            p_c2s.room_id = room_id
+                            self.client.sendall(p_c2s.toJSON())
+                            continue
+                        else:
+                            self.print_data('Error: room_id < 0')
+                    else:
+                        self.print_data('Error: cannot parse room_id, the command format is incorrect.')
+
+                elif data.startswith(Client.COMMAND_QUIT_ROOM):
+                    room_id = self.parse_room_id(Client.COMMAND_QUIT_ROOM, p_c2s.msg)
+                    if isinstance(room_id, int):
+                        if room_id >= 0:
+                            p_c2s = P4C()
+                            p_c2s.type = P4CliType.TYPE_QUIT_ROOM
+                            p_c2s.room_id = room_id
+                            self.client.sendall(p_c2s.toJSON())
+                            continue
+                        else:
+                            self.print_data('Error: room_id < 0')
+                    else:
+                        self.print_data('Error: cannot parse room_id, the command format is incorrect.')
+
+                else:
+                    if self.cur_state is Client.IN_LOBBY:
+                        p_c2s = P4C()
+                        p_c2s.type = P4CliType.TYPE_LOBBY_CHAT
+                        p_c2s.msg = data
+                        self.client.sendall(p_c2s.toJSON())
+
+                    elif self.cur_state is Client.IN_PRIVATE:
+                        p_c2s = P4C()
+                        p_c2s.type = P4CliType.TYPE_PRIVATE_CHAT
+                        p_c2s.msg = data
+                        p_c2s.from_id = self.usr_id
+                        p_c2s.to_id = self.to_usr_id
+                        self.client.sendall(p_c2s.toJSON())
+
+                    elif self.cur_state is Client.IN_ROOM:
+                        p_c2s = P4C()
+                        p_c2s.type = P4CliType.TYPE_ROOM_CHAT
+                        p_c2s.msg = data
+                        self.client.sendall(p_c2s.toJSON())
+
+
         return
 
     def recv_msg(self):
@@ -100,18 +159,41 @@ class Client(object):
                 data = self.client.recv(self.__buffer_size)
             except socket.timeout:
                 continue
-            except:
-                raise
             if data:
                 p_s2c = P4C.toObject(data)
                 if p_s2c.type is P4CliType.TYPE_SIGN_IN:
                     if p_s2c.result_id is 0:
                         self.__online = True
                         self.signining = False
-                        self.print_data('Sign In Success')
+                        self.usr_id = p_s2c.to_id
+                        self.print_data('Sign in success. Your ID is {}'.format(p_s2c.to_id))
 
                 elif p_s2c.type is P4CliType.TYPE_LOBBY_CHAT:
                     self.print_data(p_s2c.msg)
+
+                elif p_s2c.type is P4CliType.TYPE_CREATE_ROOM:
+                    if p_s2c.result_id is 0:
+                        self.cur_state = Client.IN_ROOM
+                        self.cur_room_id = p_s2c.room_id
+                        self.print_data('Create room:{} success, and enter room automatically.'.format(p_s2c.room_id))
+
+                elif p_s2c.type is P4CliType.TYPE_ENTER_ROOM:
+                    if p_s2c.result_id is 0:
+                        self.cur_state = Client.IN_ROOM
+                        self.cur_room_id = p_s2c.room_id
+                        self.print_data('Enter room:{} success'.format(p_s2c.room_id))
+
+                elif p_s2c.type is P4CliType.TYPE_QUIT_ROOM:
+                    if p_s2c.result_id is 0:
+                        self.cur_state = Client.IN_LOBBY
+                        self.cur_room_id = 0
+                        self.print_data('Quit room:{} success'.format(p_s2c.room_id))
+
+                elif p_s2c.type is P4CliType.TYPE_PRIVATE_CHAT:
+                    if p_s2c.result_id is 0:
+                        # self.cur_state = Client.IN_PRIVATE
+                        self.cur_room_id = 0
+                        self.print_data(p_s2c.msg)
 
             time.sleep(0.1)
         return
@@ -126,11 +208,15 @@ class Client(object):
         send_proc.join()
         self.client.close()
 
-    def print_data(self,data):
+    def print_data(self, data):
         sys.stdout.write('\n')
         sys.stdout.write(data)
         sys.stdout.write('\n[{}]:'.format(self.usr_name))
         sys.stdout.flush()
+
+    def parse_room_id(self, cmd, msg):
+        return eval(msg[len(cmd):len(msg)])
+
 
 if "__main__" == __name__:
     Client('localhost').run()

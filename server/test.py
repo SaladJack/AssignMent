@@ -31,11 +31,9 @@ if __name__ == "__main__":
     # print type(p.toJSON())
     #
     # print type(json.loads(p.toJSON()))
-    str = 'aaa:bbb'
-    with open('db', 'r+') as f:
-        for d in f:
-            for kv in [d.strip().split(' ')]:
-                print '%s' % kv
+    def parse_room_id(cmd, msg):
+        return eval(msg[len(cmd):len(msg)])
+    print isinstance(parse_room_id("cr","cr 1"), int)
 
 
 

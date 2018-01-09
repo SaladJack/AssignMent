@@ -116,7 +116,7 @@ class Server(object):
                         self.send_msg_to_usr(s, s, p_s2c)
 
                     elif p_c2s.type is P4SvrType.TYPE_QUIT_ROOM:
-                        p_s2c = self.handle_quit_room(s,p_c2s.room_id)
+                        p_s2c = self.handle_quit_room(s, p_c2s.room_id)
                         self.send_msg_to_usr(s, s, p_s2c)
 
                     elif p_c2s.type is P4SvrType.TYPE_ENTER_ROOM:
@@ -163,17 +163,16 @@ class Server(object):
         fore = msg.find(':', 0, len(msg))
         return msg[0:fore], msg[fore + 1:len(msg)]
 
-
     def handle_sign_in(self, connection, usr_name, usr_pwd):
         p_s2c = P4S()
         p_s2c.type = P4SvrType.TYPE_SIGN_IN
-        p_s2c.result_id = DBMgr().sign_in(usr_name,usr_pwd)
+        p_s2c.to_id = self.client_cur_id
+        p_s2c.result_id = DBMgr().sign_in(usr_name, usr_pwd)
         if p_s2c.result_id is 0:
             self.client_info[connection][1] = True
             self.client_info[connection][2] = self.client_cur_id
             self.client_cur_id += 1
         return p_s2c
-
 
     def handle_sign_out(self,connection, usr_name):
         p_s2c = P4S()
@@ -188,7 +187,6 @@ class Server(object):
         p_s2c.type = P4SvrType.TYPE_REGISTER
         p_s2c.result_id = DBMgr().register(usr_name, usr_pwd)
         return p_s2c
-
 
     def handle_create_room(self, connection):
         self.room_list[self.room_cur_id] = {connection}
@@ -229,7 +227,6 @@ class Server(object):
         except Exception,e:
             self.handle_exception(sender, receiver, e)
 
-
     def send_msg_to_room(self, sender, room_id, msg):
         room_connect_set = self.room_list[room_id]
         for receiver in room_connect_set:
@@ -239,13 +236,11 @@ class Server(object):
                 except Exception, e:
                     self.handle_exception(sender, receiver, e)
 
-
     def usr_id_2_connection(self,usr_id):
         for k, v in self.client_info.items():
             if v[2] is usr_id:
                 return k
         return None
-
 
     def handle_exception(self, sender, receiver, e):
         # err_msg = "Send Data to %s  Error! ErrMsg:%s" % (str(self.client_info[receiver][0]), str(e))
