@@ -31,9 +31,11 @@ if __name__ == "__main__":
     # print type(p.toJSON())
     #
     # print type(json.loads(p.toJSON()))
-    def parse_room_id(cmd, msg):
-        return eval(msg[len(cmd):len(msg)])
-    print isinstance(parse_room_id("cr","cr 1"), int)
+    a = 2048
+    b = 2047+1
+    print type(a),type(b)
+    print b
+    print a is b
 
 
 

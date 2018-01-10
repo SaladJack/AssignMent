@@ -11,18 +11,18 @@ class DBMgr(object):
         return DBMgr.__instance
 
 
-    def __init__(self,db_file_name='server/db'):
+    def __init__(self, db_file_name='server/db'):
         self.db_file_name = db_file_name
 
-    def sign_in(self,usr_name,usr_pwd):
+    def sign_in(self, usr_name, usr_pwd):
         with open(self.db_file_name, 'r+') as f:
             for d in f:
                 for kv in [d.strip().split(' ')]:
                     if usr_name == kv[0] and usr_pwd == kv[1]:
-                        return 0
-        return DBState.SIGN_IN_USR_NOT_FOUND
+                        return 0, kv[2]
+        return DBState.SIGN_IN_USR_NOT_FOUND, -1
 
-    def sign_out(self,usr_name):
+    def sign_out(self, usr_name):
         with open(self.db_file_name, 'rw') as f:
             for d in f:
                 for kv in [d.strip().split(' ')]:
