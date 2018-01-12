@@ -20,7 +20,7 @@ class P4C(object):
         self.result_id = data['result_id']
 
     def toJSON(self):
-        return json.dumps(self,default=lambda o: o.__dict__, sort_keys=True, indent=4)
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
     @staticmethod
     def toObject(data):
@@ -57,3 +57,12 @@ class P4SvrRsp(object):
     RSP_QUIT_ROOM_ALREADY_IN_LOBBY = 1 << 13 + 1
     RSP_PRIVATE_CHAT_TO_USR_ALREADY_OFFLINE = 1 << 12
     RSP_FIND_USR_OFFLINE_OR_NOT_REGISTER_AT_ALL = 1 << 11
+    SIGN_IN_USR_ALREADY_ONLINE = 1
+    SIGN_IN_USR_NOT_FOUND = 2
+
+    SIGN_OUT_USR_ALREADY_OFFLINE = 1
+    SIGN_OUT_USR_NOT_FOUND = 2
+
+    REGISTER_USR_ALREADY_EXIST = 1
+    REGISTER_USR_NAME_NOT_VALID = 2
+    REGISTER_USR_PWD_NOT_VALID = 3

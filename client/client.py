@@ -19,6 +19,7 @@ class Client(object):
     COMMAND_QUIT_ROOM = '/quit room'
     COMMAND_ENTER_PRIVATE_CHAT = '/chat to '
     COMMAND_QUIT_PRIVATE_CHAT = '/chat quit'
+    COMMAND_SIGN_OUT = '/sign out'
 
     # 用户状态码
     IN_LOBBY = 0
@@ -34,7 +35,7 @@ class Client(object):
         self.__flag = 1
         self.client = None
         self.__lock = threading.Lock()
-        self.__online = False
+        self.online = False
         self.signining = False # 正在登录
         self.cur_state = Client.IN_LOBBY # 0:lobby, 1:private 2:room
         self.cur_room_id = 0
@@ -61,9 +62,8 @@ class Client(object):
         try:
             client.connect(server_host)
         except:
-            print 'server == closed'
+            print 'server is closed'
             return
-            ra==e
         return client
 
     def send_msg(self):
@@ -71,22 +71,33 @@ class Client(object):
             return
         while True:
             time.sleep(0.1)
-            if self.signining == True:
+            if self.signining is True:
                 continue
             # data = raw_input()
-            if self.__online == False:
-                # sign in
-                self.signining = True
-                usr_name = raw_input("usr_name:")
-                usr_pwd = raw_input("usr_pwd:")
-                p_c2s = P4C()
-                p_c2s.type = P4CliType.TYPE_SIGN_IN
-                p_c2s.msg = usr_name + ':' + usr_pwd
-                self.usr_name = usr_name
-                self.client.sendall(p_c2s.toJSON())
+            if self.online is False:
+                ret = raw_input('Press \'i\' to Sign In, \'u\' to Sign Up: ')
+
+                if ret == 'i':
+                    # sign in
+                    self.signining = True
+                    usr_name = raw_input("usr_name:")
+                    usr_pwd = raw_input("usr_pwd:")
+                    p_c2s = P4C()
+                    p_c2s.type = P4CliType.TYPE_SIGN_IN
+                    p_c2s.msg = usr_name + ':' + usr_pwd
+                    self.usr_name = usr_name
+                    self.client.sendall(p_c2s.toJSON())
+                elif ret == 'u':
+                    # sign up
+                    usr_name = raw_input("usr_name:")
+                    usr_pwd = raw_input("usr_pwd:")
+                    p_c2s = P4C()
+                    p_c2s.type = P4CliType.TYPE_REGISTER
+                    p_c2s.msg = usr_name + ':' + usr_pwd
+                    self.usr_name = usr_name
+                    self.client.sendall(p_c2s.toJSON())
             else:
                 data = sys.stdin.readline().strip()
-                #data = raw_input('[{}]:'.format(self.usr_name))
 
                 # sys.stdout.write('[{}]:'.format(self.usr_name))
                 # sys.stdout.flush()
@@ -114,10 +125,11 @@ class Client(object):
                         else:
                             self.print_data('Error: room_id < 0')
                     else:
-                        self.print_data('Error: cannot parse room_id, the command format == incorrect.')
+                        self.print_data('Error: cannot parse room_id, the command format is incorrect.')
 
                 elif data.startswith(Client.COMMAND_QUIT_ROOM):
-                    room_id = self.parse_room_id(Client.COMMAND_QUIT_ROOM, data)
+                    # room_id = self.parse_room_id(Client.COMMAND_QUIT_ROOM, data)
+                    room_id = self.cur_room_id
                     if isinstance(room_id, int):
                         if room_id >= 0:
                             p_c2s = P4C()
@@ -128,7 +140,7 @@ class Client(object):
                         else:
                             self.print_data('Error: room_id < 0')
                     else:
-                        self.print_data('Error: cannot parse room_id, the command format == incorrect.')
+                        self.print_data('Error: cannot parse room_id, the command format is incorrect.')
 
                 elif data.startswith(Client.COMMAND_ENTER_PRIVATE_CHAT):
                     usr_name = self.parse_usr_name(Client.COMMAND_ENTER_PRIVATE_CHAT, data)
@@ -142,6 +154,12 @@ class Client(object):
                     self.cur_state = Client.IN_LOBBY
                     self.to_usr_id = 0
                     self.print_data('You are in lobby now')
+
+                elif data.startswith(Client.COMMAND_SIGN_OUT):
+                    p_c2s = P4C()
+                    p_c2s.type = P4CliType.TYPE_SIGN_OUT
+                    p_c2s.msg = self.usr_name
+                    self.client.sendall(p_c2s.toJSON())
 
                 else:
                     #data = '[{}]:{}'.format(self.usr_name, data)
@@ -187,16 +205,44 @@ class Client(object):
             if data:
                 p_s2c = P4C.toObject(data)
                 if p_s2c.type == P4CliType.TYPE_SIGN_IN:
+                    self.signining = False
                     if p_s2c.result_id == 0:
-                        self.__online = True
-                        self.signining = False
+                        self.online = True
                         self.usr_id = p_s2c.to_id
-                        self.print_data('Sign in success. Your ID is {}'.format(p_s2c.to_id))
+                        self.print_data('Sign in success. Your usr_id is {}, online time is {} seconds '.format(p_s2c.to_id, p_s2c.msg))
+                    elif p_s2c.result_id == P4SvrRsp.SIGN_IN_USR_NOT_FOUND:
+                        self.online = False
+                        print 'Sign in failed: usr not found'
+                    elif p_s2c.result_id == P4SvrRsp.SIGN_IN_USR_ALREADY_ONLINE:
+                        self.online = False
+                        print 'Sign in failed: usr is already online'
+
+                elif p_s2c.type == P4CliType.TYPE_REGISTER:
+                    if p_s2c.result_id == 0:
+                        print 'Sign up success'
+                    elif p_s2c.result_id == P4SvrRsp.REGISTER_USR_ALREADY_EXIST:
+                        print 'Sign up failed: usr_name already exists'
+                    elif p_s2c.result_id == P4SvrRsp.REGISTER_USR_NAME_NOT_VALID:
+                        print 'Sign up failed: usr_name is not valid'
+                    elif p_s2c.result_id == P4SvrRsp.REGISTER_USR_PWD_NOT_VALID:
+                        print 'Sign up failed: usr_pwd is not valid'
+
+                elif p_s2c.type == P4CliType.TYPE_SIGN_OUT:
+                    if p_s2c.result_id == 0:
+                        self.online = False
+                        self.usr_id = 0
+                        print 'Sign out success'
+                    elif p_s2c.result_id == P4SvrRsp.SIGN_OUT_USR_ALREADY_OFFLINE:
+                        print 'Sign out failed: usr is already offline'
+                    elif p_s2c.result_id == P4SvrRsp.SIGN_OUT_USR_NOT_FOUND:
+                        print 'Sign out failed: usr not found'
 
                 elif p_s2c.type == P4CliType.TYPE_LOBBY_CHAT:
                     self.print_data(p_s2c.msg)
+
                 elif p_s2c.type == P4CliType.TYPE_ROOM_CHAT:
                     self.print_data(p_s2c.msg)
+
                 elif p_s2c.type == P4CliType.TYPE_CREATE_ROOM:
                     if p_s2c.result_id == 0:
                         self.cur_state = Client.IN_ROOM
@@ -223,7 +269,8 @@ class Client(object):
                         self.print_data(p_s2c.msg)
                     elif p_s2c.result_id == P4SvrRsp.RSP_PRIVATE_CHAT_TO_USR_ALREADY_OFFLINE:
                         self.to_usr_id = 0
-                        self.usr_name_2_id.pop(p_s2c.to_id)
+                        if self.to_usr_name in self.usr_name_2_id and self.usr_name_2_id[self.to_usr_name] == p_s2c.to_id:
+                            self.usr_name_2_id.pop(self.to_usr_name)
                         self.cur_state = Client.IN_LOBBY
                         self.print_data("{} already offline, return lobby automatically".format(self.to_usr_name))
                         self.to_usr_name = ''

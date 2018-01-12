@@ -31,11 +31,10 @@ if __name__ == "__main__":
     # print type(p.toJSON())
     #
     # print type(json.loads(p.toJSON()))
-    a = 2048
-    b = 2047+1
-    print type(a),type(b)
-    print b
-    print a is b
+    f = '-1++2++3++4'
+    f = f.replace("++", "+").replace("+-", "-").replace("-+", "-").replace("- -", "+")
+    a = eval(f)
+    print a
 
 
 

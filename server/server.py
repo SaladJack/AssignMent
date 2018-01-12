@@ -183,9 +183,10 @@ class Server(object):
         p_s2c = P4S()
         p_s2c.type = P4SvrType.TYPE_SIGN_IN
 
-        p_s2c.result_id, usr_id = DBMgr().sign_in(usr_name, usr_pwd)
+        p_s2c.result_id, usr_id, usr_online_time = DBMgr().sign_in(usr_name, usr_pwd)
         if p_s2c.result_id == 0:
             p_s2c.to_id = usr_id
+            p_s2c.msg = str(usr_online_time)
             self.client_info[connection][Server.CLIENT_INFO_ONLINE] = True
             self.client_info[connection][Server.CLIENT_INFO_USR_ID] = usr_id
             self.client_info[connection][Server.CLIENT_INFO_USR_NAME] = usr_name
@@ -277,6 +278,8 @@ class Server(object):
         print "Client: %s Close Error." % str(self.client_info[receiver][0])
         usr_id = self.client_info[receiver][Server.CLIENT_INFO_USR_ID]
         usr_name = self.client_info[receiver][Server.CLIENT_INFO_USR_NAME]
+
+        self.handle_sign_out(receiver, usr_name)
 
         if usr_id in self.usr_id_2_connection:
             self.usr_id_2_connection.pop(usr_id)
