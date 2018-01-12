@@ -1,4 +1,6 @@
+import random
 
+import time
 
 if __name__ == "__main__":
     # dbMgr = DBMgr()
@@ -31,10 +33,19 @@ if __name__ == "__main__":
     # print type(p.toJSON())
     #
     # print type(json.loads(p.toJSON()))
-    f = '-1++2++3++4'
-    f = f.replace("++", "+").replace("+-", "-").replace("-+", "-").replace("- -", "+")
-    a = eval(f)
+
+    # f = '-1++2++3++4'
+    # f = f.replace("++", "+").replace("+-", "-").replace("-+", "-").replace("- -", "+")
+    # a = eval(f)
+    # print a
+
+    #print '{} {} {} {}'.format(random.randint(1,10),random.randint(1,10),random.randint(1,10),random.randint(1,10))
+    a= 1515729600
     print a
+    if ((a - 600) % 10000) % 1800 == 0:
+        print 's'
+    else:
+        print 'a'
 
 
 

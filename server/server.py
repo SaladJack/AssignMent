@@ -4,7 +4,7 @@
 """
 server select
 """
-
+import random
 import sys
 import time
 import socket
@@ -56,6 +56,7 @@ class Server(object):
     def run(self):
         while True:
             readable, writable, exceptional = select.select(self.inputs, self.outputs, self.inputs, g_select_timeout)
+            self.push_room_21_game_msg_to_queue_if_in_time()
             if not (readable or writable or exceptional):
                 continue
 
@@ -95,7 +96,7 @@ class Server(object):
                 try:
                     next_msg = self.message_queues[s].get_nowait()  # 非阻塞获取
                 except Queue.Empty:
-                    err_msg = "Output Queue == Empty!"
+                    err_msg = "Output Queue is Empty!"
                     # g_logFd.writeFormatMsg(g_logFd.LEVEL_INFO, err_msg)
                     self.outputs.remove(s)
                 except Exception, e:  # 发送的时候客户端关闭了则会出现writable和readable同时有数据，会出现message_queues的keyerror
@@ -156,6 +157,11 @@ class Server(object):
                         p_s2c = self.handle_register(usr_name, usr_pwd)
                         self.send_msg_to_usr(s, s, p_s2c.toJSON())
 
+                    elif p_c2s.type == P4SvrType.TYPE_21_GAME:
+                        # protocol data field is already filled in push_room_21_game_msg_to_queue(), so send it directly.
+                        s.sendall(next_msg)
+
+
             for s in exceptional:
                 # logging.error("Client:%s Close Error." % str(self.client_info[cli]))
                 if s in self.inputs:
@@ -178,6 +184,19 @@ class Server(object):
         # format: xxx:yyy
         fore = msg.find(':', 0, len(msg))
         return msg[0:fore], msg[fore + 1:len(msg)]
+
+    def push_room_21_game_msg_to_queue_if_in_time(self):
+        if ((int(time.time()) - 600) % 10000) % 1800 != 0:
+            return
+        p_s2c = P4S()
+        p_s2c.type = P4SvrType.TYPE_21_GAME
+        p_s2c.result_id = 0
+        for room_id, room_connection_set in self.room_list.items():
+            p_s2c.room_id = room_id
+            p_s2c.msg = '{} {} {} {}'.format(random.randint(1, 10), random.randint(1, 10), random.randint(1, 10), random.randint(1, 10))
+            for receiver in room_connection_set:
+                self.message_queues[receiver].put(p_s2c.toJSON())  # 队列添加消息
+                self.outputs.append(receiver)
 
     def handle_sign_in(self, connection, usr_name, usr_pwd):
         p_s2c = P4S()
@@ -302,8 +321,6 @@ class Server(object):
         for room_id, room_connection_set in self.room_list.items():
             if receiver in room_connection_set:
                 room_connection_set.remove(receiver)
-
-
 
 
 if "__main__" == __name__:
