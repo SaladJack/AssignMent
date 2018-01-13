@@ -50,8 +50,11 @@ class Server(object):
         self.usr_id_2_connection = {}
         self.usr_name_2_connection = {}
         self.client_cur_id = 1
-        self.room_list = {}  # 房间列表
+        self.room_list = {}  # 房间列表 room_list:(room_id,connection_set)
+        self.room_id_2_game_winner_info = {} # (room_id,(usr_id,formula)
         self.room_cur_id = 1
+        self.game_start_time = 0
+        
 
     def run(self):
         while True:
@@ -161,6 +164,11 @@ class Server(object):
                         # protocol data field is already filled in push_room_21_game_msg_to_queue(), so send it directly.
                         s.sendall(next_msg)
 
+                    elif p_c2s.type == P4SvrType.TYPE_21_GAME_PLAYER_ANSWER:
+                        p_s2c = self.handle_21_game_answer(s, p_c2s.room_id, p_c2s.from_id, p_c2s.msg)
+                        s.sendall(p_s2c.toJSON())
+
+
 
             for s in exceptional:
                 # logging.error("Client:%s Close Error." % str(self.client_info[cli]))
@@ -186,8 +194,10 @@ class Server(object):
         return msg[0:fore], msg[fore + 1:len(msg)]
 
     def push_room_21_game_msg_to_queue_if_in_time(self):
-        if ((int(time.time()) - 600) % 10000) % 1800 != 0:
+        cur_time = ((int(time.time()) - 600) % 10000) % 1800
+        if cur_time != 0:
             return
+        self.game_start_time = cur_time
         p_s2c = P4S()
         p_s2c.type = P4SvrType.TYPE_21_GAME
         p_s2c.result_id = 0
@@ -268,6 +278,26 @@ class Server(object):
         p_s2c.room_id = room_id
         return p_s2c
 
+    def handle_21_game_answer(self, connection, room_id, usr_id, formula):
+        try:
+            new_result = eval(formula)
+        except Exception, e:
+            print 'the format of the game answer from client is bad'
+
+        if room_id in room_id_2_game_winner_info:
+            cur_result = eval(room_id_2_game_winner_info[room_id])
+            if cur_result < new_result:
+                room_id_2_game_winner_info[room_id] = (usr_id, msg)
+        else:
+            new_result = eval(msg)
+            room_id_2_game_winner_info[room_id] = (usr_id, msg)
+        
+        p_s2c = P4S()
+        p_s2c.result_id = 0
+        p_s2c.type = P4SvrType.TYPE_21_GAME_PLAYER_ANSWER
+        p_s2c.room_id = room_id
+        return p_s2c
+        
     def send_msg_to_lobby(self, sender, msg):
         for receiver in self.client_info:  # 发送给其他客户端
             if receiver is not sender:

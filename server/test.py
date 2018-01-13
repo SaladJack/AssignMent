@@ -40,13 +40,8 @@ if __name__ == "__main__":
     # print a
 
     #print '{} {} {} {}'.format(random.randint(1,10),random.randint(1,10),random.randint(1,10),random.randint(1,10))
-    a= 1515729600
-    print a
-    if ((a - 600) % 10000) % 1800 == 0:
-        print 's'
-    else:
-        print 'a'
-
+    
+    
 
 
 

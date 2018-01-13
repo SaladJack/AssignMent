@@ -20,6 +20,7 @@ class Client(object):
     COMMAND_ENTER_PRIVATE_CHAT = '/chat to '
     COMMAND_QUIT_PRIVATE_CHAT = '/chat quit'
     COMMAND_SIGN_OUT = '/sign out'
+    COMMAND_21_GAME = '/21game'
 
     # 用户状态码
     IN_LOBBY = 0
@@ -44,6 +45,8 @@ class Client(object):
         self.to_usr_id = 0
         self.to_usr_name = ''
         self.usr_name_2_id = {}
+        self.game_numbers = [0,0,0,0]
+        self.room_21_game_start = False
 
     @property
     def flag(self):
@@ -160,6 +163,27 @@ class Client(object):
                     p_c2s.type = P4CliType.TYPE_SIGN_OUT
                     p_c2s.msg = self.usr_name
                     self.client.sendall(p_c2s.toJSON())
+
+                elif data.startswith(Client.COMMAND_21_GAME):
+                    formula = p_s2c.msg[len(Client.COMMAND_21_GAME) : len(p_s2c.msg)].strip().replace("++", "+").replace("+-", "-").replace("-+", "-").replace("- -", "+")
+                    if self.check_21_game_formula_number(formula) is True:
+                        try:
+                            result = eval(formula)
+                            if result <= 21:
+                                p_c2s = P4C()
+                                p_c2s.type = P4CliType.TYPE_21_GAME_PLAYER_ANSWER
+                                #p_c2s.msg = result
+                                p_c2s.msg = formula
+                                #self.print_data('21 game sent')
+                                self.client.sendall(p_s2c.toJSON())
+                                self.print_data('You answered success, wait seconds to announce the winner')
+                            else:
+                                self.print_data('result error: result greater than 21')
+                        except Exception as e:
+                            self.print_data('formula parse error')
+                    else:
+                        self.print_data('formula error: you can only use the given number')
+
 
                 else:
                     #data = '[{}]:{}'.format(self.usr_name, data)
@@ -283,6 +307,14 @@ class Client(object):
                         self.print_data('You are talking to {} now, you can input \'{}\' to return lobby'.format(self.to_usr_name, Client.COMMAND_QUIT_PRIVATE_CHAT))
                     elif p_s2c.result_id == P4SvrRsp.RSP_FIND_USR_OFFLINE_OR_NOT_REGISTER_AT_ALL:
                         self.print_data('Server cannot find online client called {}'.format(self.to_usr_name))
+
+                elif p_s2c.type == P4CliType.TYPE_21_GAME:
+                    if p_s2c.result_id == 0:
+                         i = 0
+                         for num in [p_s2c.msg.strip().split(' ')]:
+                            self.room_21_game_start = True
+                            self.game_numbers[i] = int(num)
+
             time.sleep(0.1)
         return
 
@@ -322,6 +354,11 @@ class Client(object):
 
     def parse_usr_name(self, cmd, msg):
         return msg[len(cmd):len(msg)]
+
+    def check_21_game_formula_number(self, formula):
+        pass
+
+
 
 
 if "__main__" == __name__:

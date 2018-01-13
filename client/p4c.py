@@ -49,6 +49,7 @@ class P4CliType(object):
     TYPE_SIGN_OUT =8
     TYPE_REGISTER = 9
     TYPE_FIND_USR_INFO_BY_USR_NAME = 10
+    TYPE_21_GAME = 11
 
 class P4SvrRsp(object):
     RSP_CREATE_ROOM_OVER_CAP = 1 << 15 + 1
