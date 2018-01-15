@@ -10,7 +10,7 @@ import time
 import socket
 import threading
 
-from p4c import P4C,P4CliType,P4SvrRsp
+from p4c import P4C, P4CliType, P4SvrRsp
 
 
 class Client(object):
@@ -27,7 +27,6 @@ class Client(object):
     IN_PRIVATE = 1
     IN_ROOM = 2
 
-
     def __init__(self, host, port=33333, timeout=1, reconnect=2):
         self.__host = host
         self.__port = port
@@ -37,15 +36,15 @@ class Client(object):
         self.client = None
         self.__lock = threading.Lock()
         self.online = False
-        self.signining = False # 正在登录
-        self.cur_state = Client.IN_LOBBY # 0:lobby, 1:private 2:room
+        self.signining = False  # 正在登录
+        self.cur_state = Client.IN_LOBBY  # 0:lobby, 1:private 2:room
         self.cur_room_id = 0
         self.usr_id = 0
         self.usr_name = ''
         self.to_usr_id = 0
         self.to_usr_name = ''
         self.usr_name_2_id = {}
-        self.game_numbers = [0,0,0,0]
+        self.game_numbers = [0, 0, 0, 0]
         self.room_21_game_start = False
 
     @property
@@ -118,13 +117,15 @@ class Client(object):
 
                 elif data.startswith(Client.COMMAND_ENTER_ROOM):
                     room_id = self.parse_room_id(Client.COMMAND_ENTER_ROOM, data)
+                    if room_id is None:
+                        self.print_data('command error')
+                        continue
                     if isinstance(room_id, int):
                         if room_id >= 0:
                             p_c2s = P4C()
                             p_c2s.type = P4CliType.TYPE_ENTER_ROOM
                             p_c2s.room_id = room_id
                             self.client.sendall(p_c2s.toJSON())
-                            continue
                         else:
                             self.print_data('Error: room_id < 0')
                     else:
@@ -133,6 +134,9 @@ class Client(object):
                 elif data.startswith(Client.COMMAND_QUIT_ROOM):
                     # room_id = self.parse_room_id(Client.COMMAND_QUIT_ROOM, data)
                     room_id = self.cur_room_id
+                    if room_id is None:
+                        self.print_data('command error')
+                        continue
                     if isinstance(room_id, int):
                         if room_id >= 0:
                             p_c2s = P4C()
@@ -147,6 +151,9 @@ class Client(object):
 
                 elif data.startswith(Client.COMMAND_ENTER_PRIVATE_CHAT):
                     usr_name = self.parse_usr_name(Client.COMMAND_ENTER_PRIVATE_CHAT, data)
+                    if usr_name is None:
+                        self.print_data('command error')
+                        continue
                     p_c2s = P4C()
                     p_c2s.type = P4CliType.TYPE_FIND_USR_INFO_BY_USR_NAME
                     p_c2s.msg = usr_name
@@ -165,28 +172,30 @@ class Client(object):
                     self.client.sendall(p_c2s.toJSON())
 
                 elif data.startswith(Client.COMMAND_21_GAME):
-                    formula = p_s2c.msg[len(Client.COMMAND_21_GAME) : len(p_s2c.msg)].strip().replace("++", "+").replace("+-", "-").replace("-+", "-").replace("- -", "+")
+                    formula = data[len(Client.COMMAND_21_GAME): len(data)].strip().replace("++", "+").replace("+-",
+                                                                                                              "-").replace(
+                        "-+", "-").replace("- -", "+")
                     if self.check_21_game_formula_number(formula) is True:
                         try:
                             result = eval(formula)
                             if result <= 21:
                                 p_c2s = P4C()
                                 p_c2s.type = P4CliType.TYPE_21_GAME_PLAYER_ANSWER
-                                #p_c2s.msg = result
+                                p_c2s.from_id = self.usr_id
+                                p_c2s.room_id = self.cur_room_id
                                 p_c2s.msg = formula
-                                #self.print_data('21 game sent')
-                                self.client.sendall(p_s2c.toJSON())
-                                self.print_data('You answered success, wait seconds to announce the winner')
+                                self.client.sendall(p_c2s.toJSON())
+                                self.print_data('Your answer has sent to server, wait seconds...')
                             else:
                                 self.print_data('result error: result greater than 21')
-                        except Exception as e:
+                        except Exception, e:
                             self.print_data('formula parse error')
                     else:
                         self.print_data('formula error: you can only use the given number')
 
 
                 else:
-                    #data = '[{}]:{}'.format(self.usr_name, data)
+                    # data = '[{}]:{}'.format(self.usr_name, data)
                     if self.cur_state == Client.IN_LOBBY:
                         data = '[{}{}]:{}'.format(self.usr_name, '-lobby', data)
                         p_c2s = P4C()
@@ -211,8 +220,6 @@ class Client(object):
                         p_c2s.msg = data
                         self.client.sendall(p_c2s.toJSON())
 
-
-
     def recv_msg(self):
         if not self.client:
             return
@@ -227,13 +234,18 @@ class Client(object):
             except socket.timeout:
                 continue
             if data:
-                p_s2c = P4C.toObject(data)
+                try:
+                    p_s2c = P4C.toObject(data)
+                except:
+                    print data
                 if p_s2c.type == P4CliType.TYPE_SIGN_IN:
                     self.signining = False
                     if p_s2c.result_id == 0:
                         self.online = True
                         self.usr_id = p_s2c.to_id
-                        self.print_data('Sign in success. Your usr_id is {}, online time is {} seconds '.format(p_s2c.to_id, p_s2c.msg))
+                        self.print_data(
+                            'Sign in success. Your usr_id is {}, online time is {} seconds '.format(p_s2c.to_id,
+                                                                                                    p_s2c.msg))
                     elif p_s2c.result_id == P4SvrRsp.SIGN_IN_USR_NOT_FOUND:
                         self.online = False
                         print 'Sign in failed: usr not found'
@@ -271,7 +283,8 @@ class Client(object):
                     if p_s2c.result_id == 0:
                         self.cur_state = Client.IN_ROOM
                         self.cur_room_id = p_s2c.room_id
-                        self.print_data('Create room(room_id:{}) success, and enter room automatically.'.format(p_s2c.room_id))
+                        self.print_data(
+                            'Create room(room_id:{}) success, and enter room automatically.'.format(p_s2c.room_id))
 
                 elif p_s2c.type == P4CliType.TYPE_ENTER_ROOM:
                     if p_s2c.result_id == 0:
@@ -279,7 +292,8 @@ class Client(object):
                         self.cur_room_id = p_s2c.room_id
                         self.print_data('Enter room(room_id:{}) success'.format(p_s2c.room_id))
                     elif p_s2c.result_id == P4SvrRsp.RSP_ENTER_ROOM_ID_NOT_EXIST:
-                        self.print_data('Failed to enter room.(room_id:{} cannot be founnd.)'.format(p_s2c.room_id, p_s2c.room_id))
+                        self.print_data(
+                            'Failed to enter room.(room_id:{} cannot be founnd.)'.format(p_s2c.room_id, p_s2c.room_id))
 
                 elif p_s2c.type == P4CliType.TYPE_QUIT_ROOM:
                     if p_s2c.result_id == 0:
@@ -293,7 +307,8 @@ class Client(object):
                         self.print_data(p_s2c.msg)
                     elif p_s2c.result_id == P4SvrRsp.RSP_PRIVATE_CHAT_TO_USR_ALREADY_OFFLINE:
                         self.to_usr_id = 0
-                        if self.to_usr_name in self.usr_name_2_id and self.usr_name_2_id[self.to_usr_name] == p_s2c.to_id:
+                        if self.to_usr_name in self.usr_name_2_id and self.usr_name_2_id[
+                            self.to_usr_name] == p_s2c.to_id:
                             self.usr_name_2_id.pop(self.to_usr_name)
                         self.cur_state = Client.IN_LOBBY
                         self.print_data("{} already offline, return lobby automatically".format(self.to_usr_name))
@@ -304,17 +319,28 @@ class Client(object):
                         self.to_usr_id = p_s2c.to_id
                         self.usr_name_2_id[self.to_usr_name] = p_s2c.to_id
                         self.cur_state = Client.IN_PRIVATE
-                        self.print_data('You are talking to {} now, you can input \'{}\' to return lobby'.format(self.to_usr_name, Client.COMMAND_QUIT_PRIVATE_CHAT))
+                        self.print_data(
+                            'You are talking to {} now, you can input \'{}\' to return lobby'.format(self.to_usr_name,
+                                                                                                     Client.COMMAND_QUIT_PRIVATE_CHAT))
                     elif p_s2c.result_id == P4SvrRsp.RSP_FIND_USR_OFFLINE_OR_NOT_REGISTER_AT_ALL:
                         self.print_data('Server cannot find online client called {}'.format(self.to_usr_name))
 
                 elif p_s2c.type == P4CliType.TYPE_21_GAME:
                     if p_s2c.result_id == 0:
-                         i = 0
-                         for num in [p_s2c.msg.strip().split(' ')]:
+                        i = 0
+                        for num in p_s2c.msg.strip().split(' '):
                             self.room_21_game_start = True
                             self.game_numbers[i] = int(num)
-
+                            i += 1
+                        self.print_data('21 Game Start,the numbers are {} {} {} {}'.format(self.game_numbers[0],
+                                                                                           self.game_numbers[1],
+                                                                                           self.game_numbers[2],
+                                                                                           self.game_numbers[3]))
+                elif p_s2c.type == P4CliType.TYPE_21_GAME_PLAYER_ANNOUCE_WINNER:
+                    if p_s2c.result_id == 0:
+                        if self.cur_room_id == p_s2c.room_id:
+                            self.print_data(p_s2c.msg)
+                            self.room_21_game_start = False
             time.sleep(0.1)
         return
 
@@ -328,9 +354,9 @@ class Client(object):
         send_proc.join()
         self.client.close()
 
-    def print_data(self, data, use_for_after_input = False):
+    def print_data(self, data, use_for_after_input=False):
         new_line = ''
-        if use_for_after_input == False:
+        if not use_for_after_input:
             sys.stdout.write('\n')
             sys.stdout.write(data)
             new_line = '\n'
@@ -347,18 +373,56 @@ class Client(object):
         sys.stdout.flush()
 
     def parse_room_id(self, cmd, msg):
-        return eval(msg[len(cmd):len(msg)])
+        try:
+            return eval(msg[len(cmd):len(msg)])
+        except:
+            return None
 
     def parse_usr_id(self, cmd, msg):
-        return eval(msg[len(cmd):len(msg)])
+        try:
+            return eval(msg[len(cmd):len(msg)])
+        except:
+            return None
 
     def parse_usr_name(self, cmd, msg):
-        return msg[len(cmd):len(msg)]
+        try:
+            return eval(msg[len(cmd):len(msg)])
+        except:
+            return None
 
     def check_21_game_formula_number(self, formula):
-        pass
+        numbers = []
+        parsing_number = False
+        # parse numbers in formula
+        for i in range(0, len(formula), 1):
+            c = formula[i]
 
+            if c in ('+', '-', '*', '/', '(', ')'):
+                parsing_number = False
+                continue
+            else:
+                try:
+                    num = int(c)
+                except:
+                    return False
+                if parsing_number:
+                    numbers[-1] = numbers[-1] * 10 + num
+                else:
+                    numbers.append(num)
+                parsing_number = True
 
+        if len(numbers) == 4:
+            for num in self.game_numbers:
+                for i in range(0, 4, 1):
+                    if numbers[i] == num:
+                        numbers[i] = -1
+                        break
+            for i in range(0, 4, 1):
+                if numbers[i] != -1:
+                    return False
+            return True
+
+        return False
 
 
 if "__main__" == __name__:

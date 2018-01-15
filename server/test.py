@@ -18,7 +18,6 @@ if __name__ == "__main__":
     #     usr_pwd = sys.argv[3]
     #     print 'Register Code %d' % dbMgr.register(usr_name,usr_pwd)
 
-
     # data1 = {'b': 789, 'c': 456, 'a': 123}
     # encode_json = json.dumps(data1)
     # print type(encode_json), encode_json
@@ -27,7 +26,6 @@ if __name__ == "__main__":
     # print type(decode_json)
     # print decode_json['a']
     # print decode_json
-
 
     # p = P4S()
     # print type(p.toJSON())
@@ -39,15 +37,11 @@ if __name__ == "__main__":
     # a = eval(f)
     # print a
 
-    #print '{} {} {} {}'.format(random.randint(1,10),random.randint(1,10),random.randint(1,10),random.randint(1,10))
-    
-    
+    # print '{} {} {} {}'.format(random.randint(1,10),random.randint(1,10),random.randint(1,10),random.randint(1,10))
 
 
 
-
-
-
-
-
-
+    a = set()
+    a.add(1)
+    a.add(2)
+    print a
