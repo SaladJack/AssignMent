@@ -1,10 +1,12 @@
 import os
 
 import time
+import os
 
 class DBState(object):
     SIGN_IN_USR_ALREADY_ONLINE = 1
     SIGN_IN_USR_NOT_FOUND = 2
+    SIGN_IN_USR_PWD_INCORRECT = 3
 
     SIGN_OUT_USR_ALREADY_OFFLINE = 1
     SIGN_OUT_USR_NOT_FOUND = 2
@@ -12,6 +14,7 @@ class DBState(object):
     REGISTER_USR_ALREADY_EXIST = 1
     REGISTER_USR_NAME_NOT_VALID = 2
     REGISTER_USR_PWD_NOT_VALID = 3
+
 
     def __init__(self):
         pass
@@ -27,8 +30,10 @@ class DBMgr(object):
         return DBMgr.__instance
 
 
-    def __init__(self, db_file_name='server/db'):
-        self.db_file_name = db_file_name
+    def __init__(self, db_file_name='db'):
+        dir = os.path.dirname(os.path.realpath(__file__))
+
+        self.db_file_name = '{}/{}'.format(dir, db_file_name)
 
     def sign_in(self, usr_name, usr_pwd):
         """
@@ -42,11 +47,14 @@ class DBMgr(object):
             lines = f.readlines()
             for i, line in enumerate(lines):
                 for kv in [line.strip().split(' ')]:
-                    if usr_name == kv[0] and usr_pwd == kv[1]:
-                        lines[i] = '{} {} {} {} {}\n'.format(kv[0], kv[1], kv[2], int(time.time()), kv[4])
-                        result_id = 0
-                        usr_id = kv[2]
-                        usr_online_time = kv[4]
+                    if usr_name == kv[0]:
+                        if usr_pwd == kv[1]:
+                            lines[i] = '{} {} {} {} {}\n'.format(kv[0], kv[1], kv[2], int(time.time()), kv[4])
+                            result_id = 0
+                            usr_id = kv[2]
+                            usr_online_time = kv[4]
+                        else:
+                            result_id = DBState.SIGN_IN_USR_PWD_INCORRECT
 
         with open(self.db_file_name, 'w') as f:
             f.writelines(lines)
@@ -99,10 +107,11 @@ class DBMgr(object):
             return False
         return True
 if __name__ == '__main__':
-    #print os.getcwd()
-    dbMgr = DBMgr('db')
-    print dbMgr.sign_in('netease1', '123')
-    dbMgr.register("hello",'sss')
+    print __file__
+    print(os.path.dirname(os.path.realpath(__file__)))
+    # dbMgr = DBMgr('db')
+    # print dbMgr.sign_in('netease1', '123')
+    # dbMgr.register("hello",'sss')
 """
 netease1 123 1 1515646605 0
 netease2 123 2 0 0

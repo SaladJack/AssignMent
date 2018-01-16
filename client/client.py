@@ -10,7 +10,7 @@ import time
 import socket
 import threading
 
-from p4c import P4C, P4CliType, P4SvrRsp
+from p4c import P4C, P4CliType, P4Rsp
 
 
 class Client(object):
@@ -247,21 +247,24 @@ class Client(object):
                         self.print_data(
                             'Sign in success. Your usr_id is {}, online time is {} seconds '.format(p_s2c.to_id,
                                                                                                     p_s2c.msg))
-                    elif p_s2c.result_id == P4SvrRsp.SIGN_IN_USR_NOT_FOUND:
+                    elif p_s2c.result_id == P4Rsp.SIGN_IN_USR_NOT_FOUND:
                         self.online = False
                         print 'Sign in failed: usr not found'
-                    elif p_s2c.result_id == P4SvrRsp.SIGN_IN_USR_ALREADY_ONLINE:
+                    elif p_s2c.result_id == P4Rsp.SIGN_IN_USR_ALREADY_ONLINE:
                         self.online = False
                         print 'Sign in failed: usr is already online'
+                    elif p_s2c.result_id == P4Rsp.SIGN_IN_USR_PWD_INCORRECT:
+                        self.online = False
+                        print 'Sign in failed: usr password is incorrect'
 
                 elif p_s2c.type == P4CliType.TYPE_REGISTER:
                     if p_s2c.result_id == 0:
-                        print 'Sign up success'
-                    elif p_s2c.result_id == P4SvrRsp.REGISTER_USR_ALREADY_EXIST:
+                        print 'Sign up success\n'
+                    elif p_s2c.result_id == P4Rsp.REGISTER_USR_ALREADY_EXIST:
                         print 'Sign up failed: usr_name already exists'
-                    elif p_s2c.result_id == P4SvrRsp.REGISTER_USR_NAME_NOT_VALID:
+                    elif p_s2c.result_id == P4Rsp.REGISTER_USR_NAME_NOT_VALID:
                         print 'Sign up failed: usr_name is not valid'
-                    elif p_s2c.result_id == P4SvrRsp.REGISTER_USR_PWD_NOT_VALID:
+                    elif p_s2c.result_id == P4Rsp.REGISTER_USR_PWD_NOT_VALID:
                         print 'Sign up failed: usr_pwd is not valid'
 
                 elif p_s2c.type == P4CliType.TYPE_SIGN_OUT:
@@ -269,9 +272,9 @@ class Client(object):
                         self.online = False
                         self.usr_id = 0
                         print 'Sign out success'
-                    elif p_s2c.result_id == P4SvrRsp.SIGN_OUT_USR_ALREADY_OFFLINE:
+                    elif p_s2c.result_id == P4Rsp.SIGN_OUT_USR_ALREADY_OFFLINE:
                         print 'Sign out failed: usr is already offline'
-                    elif p_s2c.result_id == P4SvrRsp.SIGN_OUT_USR_NOT_FOUND:
+                    elif p_s2c.result_id == P4Rsp.SIGN_OUT_USR_NOT_FOUND:
                         print 'Sign out failed: usr not found'
 
                 elif p_s2c.type == P4CliType.TYPE_LOBBY_CHAT:
@@ -292,7 +295,7 @@ class Client(object):
                         self.cur_state = Client.IN_ROOM
                         self.cur_room_id = p_s2c.room_id
                         self.print_data('Enter room(room_id:{}) success'.format(p_s2c.room_id))
-                    elif p_s2c.result_id == P4SvrRsp.RSP_ENTER_ROOM_ID_NOT_EXIST:
+                    elif p_s2c.result_id == P4Rsp.ENTER_ROOM_ID_NOT_EXIST:
                         self.print_data(
                             'Failed to enter room.(room_id:{} cannot be founnd.)'.format(p_s2c.room_id, p_s2c.room_id))
 
@@ -306,7 +309,7 @@ class Client(object):
                     if p_s2c.result_id == 0:
                         # self.cur_state = Client.IN_PRIVATE
                         self.print_data(p_s2c.msg)
-                    elif p_s2c.result_id == P4SvrRsp.RSP_PRIVATE_CHAT_TO_USR_ALREADY_OFFLINE:
+                    elif p_s2c.result_id == P4Rsp.PRIVATE_CHAT_TO_USR_ALREADY_OFFLINE:
                         self.to_usr_id = 0
                         if self.to_usr_name in self.usr_name_2_id and self.usr_name_2_id[
                             self.to_usr_name] == p_s2c.to_id:
@@ -323,7 +326,7 @@ class Client(object):
                         self.print_data(
                             'You are talking to {} now, you can input \'{}\' to return lobby'.format(self.to_usr_name,
                                                                                                      Client.COMMAND_QUIT_PRIVATE_CHAT))
-                    elif p_s2c.result_id == P4SvrRsp.RSP_FIND_USR_OFFLINE_OR_NOT_REGISTER_AT_ALL:
+                    elif p_s2c.result_id == P4Rsp.FIND_USR_OFFLINE_OR_NOT_REGISTER_AT_ALL:
                         self.print_data('Server cannot find online client called {}'.format(self.to_usr_name))
 
                 elif p_s2c.type == P4CliType.TYPE_21_GAME:
@@ -354,6 +357,7 @@ class Client(object):
         recv_proc.join()
         send_proc.join()
         self.client.close()
+
 
     def print_data(self, data, use_for_after_input=False):
         new_line = ''

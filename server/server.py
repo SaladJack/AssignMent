@@ -13,7 +13,7 @@ import logging
 import Queue
 
 from dbMgr import DBMgr
-from p4s import P4S, P4SvrType, P4SvrRsp
+from p4s import P4S, P4SvrType, P4Rsp
 
 g_select_timeout = 1
 
@@ -122,7 +122,7 @@ class Server(object):
                             receiver = self.usr_id_2_connection[p_c2s.to_id]
                             self.send_msg_to_usr(s, receiver, p_s2c.toJSON())
                         else:
-                            p_c2s.result_id = P4SvrRsp.RSP_PRIVATE_CHAT_TO_USR_ALREADY_OFFLINE
+                            p_c2s.result_id = P4Rsp.PRIVATE_CHAT_TO_USR_ALREADY_OFFLINE
                             p_s2c = p_c2s
                             self.send_msg_to_usr(s, s, p_s2c.toJSON())
 
@@ -267,12 +267,14 @@ class Server(object):
     def handle_sign_in(self, connection, usr_name, usr_pwd):
         p_s2c = P4S()
         p_s2c.type = P4SvrType.TYPE_SIGN_IN
+        # usr is already online
+        if usr_name in self.usr_name_2_connection:
+            p_s2c.result_id = P4Rsp.SIGN_IN_USR_ALREADY_ONLINE
+            return p_s2c
 
         p_s2c.result_id, usr_id, usr_online_time = DBMgr().sign_in(usr_name, usr_pwd)
         if p_s2c.result_id == 0:
-            if self.client_info[connection][Server.CLIENT_INFO_ONLINE]:
-                p_s2c.result_id = P4SvrRsp.SIGN_IN_USR_ALREADY_ONLINE
-                return p_s2c
+
             p_s2c.to_id = usr_id
             p_s2c.msg = str(usr_online_time)
             self.client_info[connection][Server.CLIENT_INFO_ONLINE] = True
@@ -304,7 +306,7 @@ class Server(object):
             p_s2c.result_id = 0
             p_s2c.to_id = self.client_info[self.usr_name_2_connection[usr_name]][Server.CLIENT_INFO_USR_ID]
         else:
-            p_s2c.result_id = P4SvrRsp.RSP_FIND_USR_OFFLINE_OR_NOT_REGISTER_AT_ALL
+            p_s2c.result_id = P4Rsp.FIND_USR_OFFLINE_OR_NOT_REGISTER_AT_ALL
         return p_s2c
 
     def handle_create_room(self, connection):
@@ -321,7 +323,7 @@ class Server(object):
         p_s2c.type = P4SvrType.TYPE_ENTER_ROOM
         p_s2c.room_id = room_id
         if room_id not in self.room_list:
-            p_s2c.result_id = P4SvrRsp.RSP_ENTER_ROOM_ID_NOT_EXIST
+            p_s2c.result_id = P4Rsp.ENTER_ROOM_ID_NOT_EXIST
             return p_s2c
 
         self.room_list[room_id].add(connection)
