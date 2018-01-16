@@ -72,7 +72,7 @@ class Client(object):
         if not self.client:
             return
         while True:
-            time.sleep(0.1)
+            # time.sleep(0.1)
             if self.signining is True:
                 continue
             # data = raw_input()
@@ -100,6 +100,7 @@ class Client(object):
                     self.client.sendall(p_c2s.toJSON())
             else:
                 data = sys.stdin.readline().strip()
+                sys.stdin.flush()
 
                 # sys.stdout.write('[{}]:'.format(self.usr_name))
                 # sys.stdout.flush()
@@ -341,7 +342,7 @@ class Client(object):
                         if self.cur_room_id == p_s2c.room_id:
                             self.print_data(p_s2c.msg)
                             self.room_21_game_start = False
-            time.sleep(0.1)
+            # time.sleep(0.1)
         return
 
     def run(self):

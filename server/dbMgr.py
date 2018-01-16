@@ -92,8 +92,6 @@ class DBMgr(object):
         if ret:
             with open(self.db_file_name, 'w+') as f:
                 f.writelines(lines)
-
-
         return 0
 
     def check_info_valid(self, info):
@@ -104,7 +102,7 @@ if __name__ == '__main__':
     #print os.getcwd()
     dbMgr = DBMgr('db')
     print dbMgr.sign_in('netease1', '123')
-    dbMgr.register("shit",'sss')
+    dbMgr.register("hello",'sss')
 """
 netease1 123 1 1515646605 0
 netease2 123 2 0 0

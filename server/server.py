@@ -25,27 +25,27 @@ class Server(object):
     CLIENT_INFO_USR_NAME = 3
 
     def __init__(self, host='localhost', port=33333, timeout=2, client_nums=10):
-        self.__host = host
-        self.__port = port
-        self.__timeout = timeout
-        self.__client_nums = client_nums
-        self.__buffer_size = 1024
+        self.host = host
+        self.port = port
+        self.timeout = timeout
+        self.client_nums = client_nums
+        self.buffer_size = 1024
 
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setblocking(False)
-        self.server.settimeout(self.__timeout)
+        self.server.settimeout(self.timeout)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)  # keepalive
-        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # 端口复用
-        server_host = (self.__host, self.__port)
+        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # resuse
+        server_host = (self.host, self.port)
         try:
             self.server.bind(server_host)
-            self.server.listen(self.__client_nums)
+            self.server.listen(self.client_nums)
         except:
             raise
 
-        self.inputs = [self.server]  # select 接收文件描述符列表
-        self.outputs = []  # 输出文件描述符列表
-        self.message_queues = {}  # 消息队列
+        self.inputs = [self.server]
+        self.outputs = []
+        self.message_queues = {}
         self.client_info = {}
         self.usr_id_2_connection = {}
         self.usr_name_2_connection = {}
@@ -78,7 +78,7 @@ class Server(object):
 
                 else:  # 是client, 数据发送过来
                     try:
-                        data = s.recv(self.__buffer_size)
+                        data = s.recv(self.buffer_size)
                         if data:
                             # print data
                             # data = "%s %s say: %s" % (time.strftime("%Y-%m-%d %H:%M:%S"), self.client_info[s], data)
@@ -172,7 +172,6 @@ class Server(object):
                     elif p_c2s.type == P4SvrType.TYPE_21_GAME_PLAYER_ANSWER:
                         p_s2c = self.handle_21_game_answer(s, p_c2s.room_id, p_c2s.from_id, p_c2s.msg)
                         self.send_msg_to_usr(s, s, p_s2c.toJSON())
-
 
             for s in exceptional:
                 # logging.error("Client:%s Close Error." % str(self.client_info[cli]))
@@ -271,6 +270,9 @@ class Server(object):
 
         p_s2c.result_id, usr_id, usr_online_time = DBMgr().sign_in(usr_name, usr_pwd)
         if p_s2c.result_id == 0:
+            if self.client_info[connection][Server.CLIENT_INFO_ONLINE]:
+                p_s2c.result_id = P4SvrRsp.SIGN_IN_USR_ALREADY_ONLINE
+                return p_s2c
             p_s2c.to_id = usr_id
             p_s2c.msg = str(usr_online_time)
             self.client_info[connection][Server.CLIENT_INFO_ONLINE] = True
@@ -358,6 +360,7 @@ class Server(object):
         p_s2c.type = P4SvrType.TYPE_21_GAME_PLAYER_ANSWER
         p_s2c.room_id = room_id
         return p_s2c
+
     def send_msg_to_lobby(self, sender, msg):
         for receiver in self.client_info:  # 发送给其他客户端
             if receiver is not sender:
