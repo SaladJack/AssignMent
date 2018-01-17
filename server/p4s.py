@@ -29,14 +29,6 @@ class P4S(object):
         p.loadDict(data_dict)
         return p
 
-    def isLobbyChat(self):
-        return self.room_id == 0
-
-    def isPrivateChat(self):
-        return self.from_id != 0 and self.to_id != 0
-
-    def isRoomChat(self):
-        return self.room_id != 0
 
 class P4SvrType(object):
     TYPE_CREATE_ROOM = 1

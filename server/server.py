@@ -291,6 +291,11 @@ class Server(object):
         p_s2c.result_id = DBMgr().sign_out(usr_name)
         if p_s2c.result_id == 0:
             self.client_info[connection][Server.CLIENT_INFO_ONLINE] = False
+            if usr_name in self.usr_name_2_connection:
+                self.usr_name_2_connection.pop(usr_name)
+            for room_id, room_connection_set in self.room_list.items():
+                if connection in room_connection_set:
+                    room_connection_set.remove(connection)
         return p_s2c
 
     def handle_register(self, usr_name, usr_pwd):
