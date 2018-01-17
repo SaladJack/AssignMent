@@ -12,6 +12,8 @@ import select
 import logging
 import Queue
 
+import datetime
+
 from dbMgr import DBMgr
 from p4s import P4S, P4SvrType, P4Rsp
 
@@ -23,6 +25,9 @@ class Server(object):
     CLIENT_INFO_ONLINE = 1
     CLIENT_INFO_USR_ID = 2
     CLIENT_INFO_USR_NAME = 3
+
+    BLACK_JACK_LAST_TIME = 15
+    BLACK_JACK_PERIOD_TIME = 1800
 
     def __init__(self, host='localhost', port=33333, timeout=2, client_nums=10):
         self.host = host
@@ -57,7 +62,7 @@ class Server(object):
         self.game_end_time = 0
         self.game_end_immediately_room_id_set = set()
         self.rooms_game_result_has_inserted_to_msg_queue = set() # setitem:room_id
-        
+        self.today_0_clock_time_stamp = int(time.mktime(datetime.date.today().timetuple()))
 
     def run(self):
         while True:
@@ -217,7 +222,7 @@ class Server(object):
                     self.outputs.append(receiver)
         self.game_end_immediately_room_id_set.clear()
         # announce the winner after 15 seconds
-        if cur_time != self.game_end_time and cur_time - self.game_start_time == 8:
+        if cur_time != self.game_end_time and cur_time - self.game_start_time == Server.BLACK_JACK_LAST_TIME:
             for room_id, room_connection_set in self.room_list.items():
                 if room_id in self.rooms_game_result_has_inserted_to_msg_queue:
                     continue
@@ -242,9 +247,7 @@ class Server(object):
 
 
         # half o'clock
-        #if (((cur_time - 600) % 10000) % 1800) != 0:
-            #return
-        if cur_time != self.game_start_time and cur_time % 15 == 0.0:
+        if cur_time != self.game_start_time and (cur_time - self.today_0_clock_time_stamp) % Server.BLACK_JACK_PERIOD_TIME == 0:
             self.rooms_game_result_has_inserted_to_msg_queue.clear()
             print '21 game start, cur_time:{}'.format(cur_time)
 

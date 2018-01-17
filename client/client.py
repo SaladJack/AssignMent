@@ -34,7 +34,7 @@ class Client(object):
         self.__buffer_size = 1024
         self.client = None
         self.online = False
-        self.sending_data = False  # 正在登录
+        self.sending_data = False
         self.cur_state = Client.IN_LOBBY  # 0:lobby, 1:private 2:room
         self.cur_room_id = 0
         self.usr_id = 0
@@ -44,6 +44,7 @@ class Client(object):
         self.usr_name_2_id = {}
         self.game_numbers = [0, 0, 0, 0]
         self.room_21_game_start = False
+        self.svr_not_respond = False
 
 
     def __connect(self):
@@ -67,147 +68,151 @@ class Client(object):
             if self.sending_data is True:
                 continue
             # data = raw_input()
-            if self.online is False:
-                ret = raw_input('\nPress \'i\' to Sign In, \'u\' to Sign Up: ')
+            try:
+                if self.online is False:
+                    ret = raw_input('\nPress \'i\' to Sign In, \'u\' to Sign Up: ')
 
-                if ret == 'i':
-                    # sign in
-                    usr_name = raw_input("usr_name:")
-                    usr_pwd = raw_input("usr_pwd:")
-                    self.sending_data = True
-                    p_c2s = P4C()
-                    p_c2s.type = P4CliType.TYPE_SIGN_IN
-                    p_c2s.msg = usr_name + ':' + usr_pwd
-                    self.usr_name = usr_name
-                    self.client.sendall(p_c2s.toJSON())
-                elif ret == 'u':
-                    # sign up
-                    usr_name = raw_input("usr_name:")
-                    usr_pwd = raw_input("usr_pwd:")
-                    p_c2s = P4C()
-                    p_c2s.type = P4CliType.TYPE_REGISTER
-                    p_c2s.msg = usr_name + ':' + usr_pwd
-                    self.sending_data = True
-                    self.usr_name = usr_name
-                    self.client.sendall(p_c2s.toJSON())
-            else:
-                data = sys.stdin.readline().strip()
-                #sys.stdin.flush()
-                self.print_data('', True)
-
-                if data.startswith(Client.COMMAND_CREATE_ROOM):
-                    p_c2s = P4C()
-                    p_c2s.type = P4CliType.TYPE_CREATE_ROOM
-                    self.client.sendall(p_c2s.toJSON())
-
-                elif data.startswith(Client.COMMAND_ENTER_ROOM):
-                    room_id = self.parse_room_id(Client.COMMAND_ENTER_ROOM, data)
-                    if room_id is None:
-                        self.print_data('command error')
-                        continue
-                    if isinstance(room_id, int):
-                        if room_id >= 0:
-                            p_c2s = P4C()
-                            p_c2s.type = P4CliType.TYPE_ENTER_ROOM
-                            p_c2s.room_id = room_id
-                            self.client.sendall(p_c2s.toJSON())
-                        else:
-                            self.print_data('Error: room_id < 0')
-                    else:
-                        self.print_data('Error: cannot parse room_id, the command format is incorrect.')
-
-                elif data.startswith(Client.COMMAND_QUIT_ROOM):
-                    # room_id = self.parse_room_id(Client.COMMAND_QUIT_ROOM, data)
-                    room_id = self.cur_room_id
-                    if room_id is None:
-                        self.print_data('command error')
-                        continue
-                    if isinstance(room_id, int):
-                        if room_id >= 0:
-                            p_c2s = P4C()
-                            p_c2s.type = P4CliType.TYPE_QUIT_ROOM
-                            p_c2s.room_id = room_id
-                            self.client.sendall(p_c2s.toJSON())
-                            continue
-                        else:
-                            self.print_data('Error: room_id < 0')
-                    else:
-                        self.print_data('Error: cannot parse room_id, the command format is incorrect.')
-
-                elif data.startswith(Client.COMMAND_ENTER_PRIVATE_CHAT):
-                    usr_name = self.parse_usr_name(Client.COMMAND_ENTER_PRIVATE_CHAT, data)
-                    if usr_name is None:
-                        self.print_data('command error')
-                        continue
-                    p_c2s = P4C()
-                    p_c2s.type = P4CliType.TYPE_FIND_USR_INFO_BY_USR_NAME
-                    p_c2s.msg = usr_name
-                    self.to_usr_name = usr_name
-                    self.client.sendall(p_c2s.toJSON())
-
-                elif data.startswith(Client.COMMAND_QUIT_PRIVATE_CHAT):
-                    self.cur_state = Client.IN_LOBBY
-                    self.to_usr_id = 0
-                    self.print_data('You are in lobby now')
-
-                elif data.startswith(Client.COMMAND_SIGN_OUT):
-                    p_c2s = P4C()
-                    p_c2s.type = P4CliType.TYPE_SIGN_OUT
-                    p_c2s.msg = self.usr_name
-                    self.online = False # designed to set false when rcv rsp,just to fix console conflict
-                    self.client.sendall(p_c2s.toJSON())
-
-                elif data.startswith(Client.COMMAND_21_GAME):
-                    if not self.room_21_game_start:
-                        self.print_data('Black Jack is not ready')
-                        continue
-                    formula = data[len(Client.COMMAND_21_GAME): len(data)].strip().replace("++", "+").replace("+-",
-                                                                                                              "-").replace(
-                        "-+", "-").replace("- -", "+")
-                    if self.check_21_game_formula_number(formula) is True:
-                        try:
-                            result = eval(formula)
-                            if result <= 21:
-                                p_c2s = P4C()
-                                p_c2s.type = P4CliType.TYPE_21_GAME_PLAYER_ANSWER
-                                p_c2s.from_id = self.usr_id
-                                p_c2s.room_id = self.cur_room_id
-                                p_c2s.msg = formula
-                                self.client.sendall(p_c2s.toJSON())
-                                self.print_data('Your answer has sent to server, wait seconds...')
-                            else:
-                                self.print_data('result error: result greater than 21')
-                        except Exception, e:
-                            self.print_data('formula parse error')
-                    else:
-                        self.print_data('formula error: you can only use the given number')
-
-
+                    if ret == 'i':
+                        # sign in
+                        usr_name = raw_input("usr_name:")
+                        usr_pwd = raw_input("usr_pwd:")
+                        self.sending_data = True
+                        p_c2s = P4C()
+                        p_c2s.type = P4CliType.TYPE_SIGN_IN
+                        p_c2s.msg = usr_name + ':' + usr_pwd
+                        self.usr_name = usr_name
+                        self.client.sendall(p_c2s.toJSON())
+                    elif ret == 'u':
+                        # sign up
+                        usr_name = raw_input("usr_name:")
+                        usr_pwd = raw_input("usr_pwd:")
+                        p_c2s = P4C()
+                        p_c2s.type = P4CliType.TYPE_REGISTER
+                        p_c2s.msg = usr_name + ':' + usr_pwd
+                        self.sending_data = True
+                        self.usr_name = usr_name
+                        self.client.sendall(p_c2s.toJSON())
                 else:
-                    self.sending_data = False # Unreliable Transmission
-                    if self.cur_state == Client.IN_LOBBY:
-                        data = '[{}{}]:{}'.format(self.usr_name, '-lobby', data)
+                    data = sys.stdin.readline().strip()
+                    #sys.stdin.flush()
+                    self.print_data('', True)
+
+                    if data.startswith(Client.COMMAND_CREATE_ROOM):
                         p_c2s = P4C()
-                        p_c2s.type = P4CliType.TYPE_LOBBY_CHAT
-                        p_c2s.msg = data
+                        p_c2s.type = P4CliType.TYPE_CREATE_ROOM
                         self.client.sendall(p_c2s.toJSON())
 
-                    elif self.cur_state == Client.IN_PRIVATE:
-                        data = '[{}{}]:{}'.format(self.usr_name, '-private', data)
+                    elif data.startswith(Client.COMMAND_ENTER_ROOM):
+                        room_id = self.parse_room_id(Client.COMMAND_ENTER_ROOM, data)
+                        if room_id is None:
+                            self.print_data('command error')
+                            continue
+                        if isinstance(room_id, int):
+                            if room_id >= 0:
+                                p_c2s = P4C()
+                                p_c2s.type = P4CliType.TYPE_ENTER_ROOM
+                                p_c2s.room_id = room_id
+                                self.client.sendall(p_c2s.toJSON())
+                            else:
+                                self.print_data('Error: room_id < 0')
+                        else:
+                            self.print_data('Error: cannot parse room_id, the command format is incorrect.')
+
+                    elif data.startswith(Client.COMMAND_QUIT_ROOM):
+                        # room_id = self.parse_room_id(Client.COMMAND_QUIT_ROOM, data)
+                        room_id = self.cur_room_id
+                        if room_id is None:
+                            self.print_data('command error')
+                            continue
+                        if isinstance(room_id, int):
+                            if room_id >= 0:
+                                p_c2s = P4C()
+                                p_c2s.type = P4CliType.TYPE_QUIT_ROOM
+                                p_c2s.room_id = room_id
+                                self.client.sendall(p_c2s.toJSON())
+                                continue
+                            else:
+                                self.print_data('Error: room_id < 0')
+                        else:
+                            self.print_data('Error: cannot parse room_id, the command format is incorrect.')
+
+                    elif data.startswith(Client.COMMAND_ENTER_PRIVATE_CHAT):
+                        usr_name = self.parse_usr_name(Client.COMMAND_ENTER_PRIVATE_CHAT, data)
+                        if usr_name is None:
+                            self.print_data('command error')
+                            continue
                         p_c2s = P4C()
-                        p_c2s.type = P4CliType.TYPE_PRIVATE_CHAT
-                        p_c2s.msg = data
-                        p_c2s.from_id = self.usr_id
-                        p_c2s.to_id = self.to_usr_id
+                        p_c2s.type = P4CliType.TYPE_FIND_USR_INFO_BY_USR_NAME
+                        p_c2s.msg = usr_name
+                        self.to_usr_name = usr_name
                         self.client.sendall(p_c2s.toJSON())
 
-                    elif self.cur_state == Client.IN_ROOM:
-                        data = '[{}{}]:{}'.format(self.usr_name, '-room-{}'.format(self.cur_room_id), data)
+                    elif data.startswith(Client.COMMAND_QUIT_PRIVATE_CHAT):
+                        self.cur_state = Client.IN_LOBBY
+                        self.to_usr_id = 0
+                        self.print_data('You are in lobby now')
+
+                    elif data.startswith(Client.COMMAND_SIGN_OUT):
                         p_c2s = P4C()
-                        p_c2s.type = P4CliType.TYPE_ROOM_CHAT
-                        p_c2s.room_id = self.cur_room_id
-                        p_c2s.msg = data
+                        p_c2s.type = P4CliType.TYPE_SIGN_OUT
+                        p_c2s.msg = self.usr_name
+                        self.online = False # designed to set false when rcv rsp,just to fix console conflict
                         self.client.sendall(p_c2s.toJSON())
+
+                    elif data.startswith(Client.COMMAND_21_GAME):
+                        if not self.room_21_game_start:
+                            self.print_data('Black Jack is not ready')
+                            continue
+                        formula = data[len(Client.COMMAND_21_GAME): len(data)].strip().replace("++", "+").replace("+-",
+                                                                                                                  "-").replace(
+                            "-+", "-").replace("- -", "+")
+                        if self.check_21_game_formula_number(formula) is True:
+                            try:
+                                result = eval(formula)
+                                if result <= 21:
+                                    p_c2s = P4C()
+                                    p_c2s.type = P4CliType.TYPE_21_GAME_PLAYER_ANSWER
+                                    p_c2s.from_id = self.usr_id
+                                    p_c2s.room_id = self.cur_room_id
+                                    p_c2s.msg = formula
+                                    self.client.sendall(p_c2s.toJSON())
+                                    self.print_data('Your answer has sent to server, wait seconds...')
+                                else:
+                                    self.print_data('result error: result greater than 21')
+                            except Exception, e:
+                                self.print_data('formula parse error')
+                        else:
+                            self.print_data('formula error: you can only use the given number')
+
+
+                    else:
+                        self.sending_data = False # Unreliable Transmission
+                        if self.cur_state == Client.IN_LOBBY:
+                            data = '[{}{}]:{}'.format(self.usr_name, '-lobby', data)
+                            p_c2s = P4C()
+                            p_c2s.type = P4CliType.TYPE_LOBBY_CHAT
+                            p_c2s.msg = data
+                            self.client.sendall(p_c2s.toJSON())
+
+                        elif self.cur_state == Client.IN_PRIVATE:
+                            data = '[{}{}]:{}'.format(self.usr_name, '-private', data)
+                            p_c2s = P4C()
+                            p_c2s.type = P4CliType.TYPE_PRIVATE_CHAT
+                            p_c2s.msg = data
+                            p_c2s.from_id = self.usr_id
+                            p_c2s.to_id = self.to_usr_id
+                            self.client.sendall(p_c2s.toJSON())
+
+                        elif self.cur_state == Client.IN_ROOM:
+                            data = '[{}{}]:{}'.format(self.usr_name, '-room-{}'.format(self.cur_room_id), data)
+                            p_c2s = P4C()
+                            p_c2s.type = P4CliType.TYPE_ROOM_CHAT
+                            p_c2s.room_id = self.cur_room_id
+                            p_c2s.msg = data
+                            self.client.sendall(p_c2s.toJSON())
+            except:
+                print "Server is closed"
+                exit(0)
 
     def recv_msg(self):
         if not self.client:
@@ -218,6 +223,9 @@ class Client(object):
                 data = self.client.recv(self.__buffer_size)
             except socket.timeout:
                 continue
+            except Exception,e:
+                self.client = None
+                exit(0)
             if data:
                 try:
                     p_s2c = P4C.toObject(data)
@@ -350,7 +358,10 @@ class Client(object):
         send_proc.start()
         recv_proc.join()
         send_proc.join()
-        self.client.close()
+        try:
+            self.client.close()
+        except:
+            pass
 
 
     def print_data(self, data, use_for_after_input=False):
@@ -385,7 +396,7 @@ class Client(object):
 
     def parse_usr_name(self, cmd, msg):
         try:
-            return eval(msg[len(cmd):len(msg)])
+            return msg[len(cmd):len(msg)].strip()
         except:
             return None
 

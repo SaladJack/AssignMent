@@ -2,6 +2,8 @@ import random
 
 import time
 
+import datetime
+
 if __name__ == "__main__":
     # dbMgr = DBMgr()
     #
@@ -38,10 +40,9 @@ if __name__ == "__main__":
     # print a
 
     # print '{} {} {} {}'.format(random.randint(1,10),random.randint(1,10),random.randint(1,10),random.randint(1,10))
-
-
-
-    a = set()
-    a.add(1)
-    a.add(2)
-    print a
+    cur_time = 1517288400
+    #cur_time = 1515906000
+    today = datetime.date.today()
+    print int(time.mktime(today.timetuple()))
+    print (cur_time - int(time.mktime(today.timetuple()))) % 1800 == 0
+    #print (((cur_time + 200) % 100000) % 1800) == 0

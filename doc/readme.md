@@ -17,28 +17,27 @@ $ python client.py
 
 ![登录](http://ww1.sinaimg.cn/large/61340919gy1fnivx4ffmvj20zd0b4tbi.jpg)
 
-4.登录成功后，用户会默认进入大厅(lobby)，用户可直接在大厅里聊天，也可以输入特定的**命令**来进行其它的操作，具体操作方式如下：
+4.登录成功后，用户会默认进入大厅(lobby)，用户可直接在大厅里聊天，也可以输入特定的**命令**来进行其它的操作，具体命令的操作方式如下：
 
 ``` bash
 $ [netease1-lobby]:/create room      # 创建并进入房间
 $ [netease1-lobby]:/enter room 1     # 进入1号房间
-$ [netease1-room-1]:/quite room      # 退出房间
+$ [netease1-room-1]:/quit room       # 退出房间
 $ [netease1-room-1]:/21game 4+5+6+6  # 参加21点游戏，提交的答案为：4+5+6+6
 $ [netease1-lobby]:/chat to netease2 # 与用户netease2私聊
 $ [netease1-private]:/chat quit      # 退出私聊
 $ [netease1-lobby]:/sign out         # 注销
 ```
 
-
 # 架构说明
 
-1.C/S端各有一份协议`p4c/p4s`，协议在传输时会序列化成`JSON`格式
-
-2.`server/db`存储了所有已有用户的信息，文件每一行的数据格式为
+1.`server/db`存储了所有已有用户的信息，文件每一行的数据格式为
 
 ```
 用户名 密码 用户ID 最近一次登录的时间戳(秒) 总登录时长(秒)
 ```
+
+2.C/S端各有一份协议`p4c/p4s`，协议在传输时会序列化成`JSON`格式
 
 3.考虑到在Python中，Windows的`select()`方法只能接收`socket`的输入流，而不像Linux还能接收`sys.stdin`的输入流。所以为了使`sys.stdin`不会阻塞接收信息，在Client端收、发逻辑要处于不同的线程
 
@@ -47,3 +46,18 @@ $ [netease1-lobby]:/sign out         # 注销
 ![](http://ww1.sinaimg.cn/large/61340919ly1fnivbe41zgj20vv0hidga.jpg)
 
 
+# 注意
+1.为方便测试21点游戏，可运行服务端测试程序`server-test.py`进行测试。
+
+2.游戏每`30`秒发起一次，答题时间限制为`15`秒，每次的游戏数字均为`4 5 6 6`
+
+```bash
+$ python server-test.py
+```
+
+```bash
+$ [netease1-room-1]:Black Jack is ready,the numbers are 4 5 6 6
+$ [netease1-room-1]:/21game 4+5+6+6
+$ [netease1-room-1]:Your answer has sent to server, wait seconds...
+$ [netease1-room-1]:Winner is netease1, his/her answer is 4+5+6+6=21
+```
