@@ -173,6 +173,9 @@ class Client(object):
                     self.client.sendall(p_c2s.toJSON())
 
                 elif data.startswith(Client.COMMAND_21_GAME):
+                    if not self.room_21_game_start:
+                        self.print_data('Black Jack is not ready')
+                        continue
                     formula = data[len(Client.COMMAND_21_GAME): len(data)].strip().replace("++", "+").replace("+-",
                                                                                                               "-").replace(
                         "-+", "-").replace("- -", "+")
@@ -336,7 +339,7 @@ class Client(object):
                             self.room_21_game_start = True
                             self.game_numbers[i] = int(num)
                             i += 1
-                        self.print_data('21 Game Start,the numbers are {} {} {} {}'.format(self.game_numbers[0],
+                        self.print_data('Black Jack is ready,the numbers are {} {} {} {}'.format(self.game_numbers[0],
                                                                                            self.game_numbers[1],
                                                                                            self.game_numbers[2],
                                                                                            self.game_numbers[3]))
