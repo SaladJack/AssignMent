@@ -1,0 +1,269 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{e404acb9-446b-45e1-a6b4-60f907ef37fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{a16b9a56-c762-4192-9354-a3e7ca2e73af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Windows">
+      <UniqueIdentifier>{59ab16a5-6d1b-43dd-a23f-43c20992c39b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sample">
+      <UniqueIdentifier>{553aa1cb-47cd-4a79-a909-32bc92dacdc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math">
+      <UniqueIdentifier>{e830be56-c4f7-47a6-b359-4fcc36d132a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework">
+      <UniqueIdentifier>{e1696ea4-6ec0-45df-b5c6-f1eb5a9d04ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="BaseCode">
+      <UniqueIdentifier>{a6a460f6-b664-4ba7-a01b-7e7df630a67a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{474a2a26-d3de-4067-8ba7-def3f3aab011}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="BaseCode\Texture">
+      <UniqueIdentifier>{95d0d71c-a8ff-4e51-9ad1-b33225cb5b1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Scene">
+      <UniqueIdentifier>{82a72c5a-cf3b-46bb-a0c6-2d005613b99c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Windows\D3D11App.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Windows\GameTimer.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Sample\Sample.cpp">
+      <Filter>Sample</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringHash.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\MathHelper.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\SimpleMath.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Camera.cpp">
+      <Filter>Renderer\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Component.cpp">
+      <Filter>Renderer\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Light.cpp">
+      <Filter>Renderer\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Scene.cpp">
+      <Filter>Renderer\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Framework\Frustum.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\DeviceManager.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\SwapChain.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GemoetryRender.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\D3D11RendererMaterial.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\VertexTypes.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Shader.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseCode\BaseFunc.cpp">
+      <Filter>BaseCode</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\ConstantBuffer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseCode\Texture\DDSTextureLoader.cpp">
+      <Filter>BaseCode\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseCode\DXFunction.cpp">
+      <Filter>BaseCode</Filter>
+    </ClCompile>
+    <ClCompile Include="Framework\SkyBox.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\CommonStates.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseCode\GeometryGens.cpp">
+      <Filter>BaseCode</Filter>
+    </ClCompile>
+    <ClCompile Include="Framework\GameObject.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseCode\Texture\Texture.cpp">
+      <Filter>BaseCode\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseCode\Texture\TextureMgr.cpp">
+      <Filter>BaseCode\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\RenderTarget2D.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MaterialMgr.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GeometricPrimitive.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Framework\AnimationHelper.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\GameNode.cpp">
+      <Filter>Renderer\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Sample\SnowmanSample.cpp">
+      <Filter>Sample</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Windows\D3D11App.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Windows\GameTimer.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HpD3D9Type.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="Sample\Sample.h">
+      <Filter>Sample</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\MathHelper.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\SimpleMath.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Camera.h">
+      <Filter>Renderer\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Component.h">
+      <Filter>Renderer\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Light.h">
+      <Filter>Renderer\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Scene.h">
+      <Filter>Renderer\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\object.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\StringHash.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\Frustum.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\SwapChain.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\DeviceManager.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GemoetryRender.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\D3D11RendererMaterial.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\VertexTypes.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Shader.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseCode\BaseFunc.h">
+      <Filter>BaseCode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GraphicsDefs.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\ConstantBuffer.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DirectXHelpers.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseCode\Texture\dds.h">
+      <Filter>BaseCode\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseCode\Texture\DDSTextureLoader.h">
+      <Filter>BaseCode\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseCode\Texture\pch.h">
+      <Filter>BaseCode\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseCode\Texture\PlatformHelpers.h">
+      <Filter>BaseCode\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseCode\DXFunction.h">
+      <Filter>BaseCode</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\SkyBox.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\CommonStates.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseCode\GeometryGens.h">
+      <Filter>BaseCode</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\GameObject.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseCode\Texture\TextureMgr.h">
+      <Filter>BaseCode\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseCode\Texture\Texture.h">
+      <Filter>BaseCode\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\RenderTarget2D.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Sample\SampleBase.h">
+      <Filter>Sample</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MaterialMgr.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GeometricPrimitive.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\AnimationHelper.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\GameNode.h">
+      <Filter>Renderer\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Sample\SnowmanSample.h">
+      <Filter>Sample</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Math\SimpleMath.inl">
+      <Filter>Math</Filter>
+    </None>
+  </ItemGroup>
+</Project>

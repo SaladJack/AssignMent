@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{DCC3E13D-30AD-47A4-BD0A-A8FA3C260791}</ProjectGuid>
+    <RootNamespace>D3D11Engine</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Props\Exe.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Props\Exe.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)build\Tmp\Link\$(ProjectName)\$(ConfigurationName)</OutDir>
+    <IntDir>$(SolutionDir)build\Tmp\Complie\$(ProjectName)\$(ConfigurationName)</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>../D3D11Engine;include;../SDK/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>../SDK/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <OutputFile>$(SolutionDir)build\Bin\$(ConfigurationName)\$(ProjectName).exe</OutputFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>../D3D11Engine;include;../SDK/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>../SDK/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <OutputFile>../env/$(ProjectName).exe</OutputFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="BaseCode\BaseFunc.cpp" />
+    <ClCompile Include="BaseCode\DXFunction.cpp" />
+    <ClCompile Include="BaseCode\GeometryGens.cpp" />
+    <ClCompile Include="BaseCode\Texture\DDSTextureLoader.cpp" />
+    <ClCompile Include="BaseCode\Texture\Texture.cpp" />
+    <ClCompile Include="BaseCode\Texture\TextureMgr.cpp" />
+    <ClCompile Include="Framework\AnimationHelper.cpp" />
+    <ClCompile Include="Framework\Frustum.cpp" />
+    <ClCompile Include="Framework\GameObject.cpp" />
+    <ClCompile Include="Framework\SkyBox.cpp" />
+    <ClCompile Include="Math\MathHelper.cpp" />
+    <ClCompile Include="Math\SimpleMath.cpp" />
+    <ClCompile Include="Renderer\CommonStates.cpp" />
+    <ClCompile Include="Renderer\ConstantBuffer.cpp" />
+    <ClCompile Include="Renderer\D3D11RendererMaterial.cpp" />
+    <ClCompile Include="Renderer\DeviceManager.cpp" />
+    <ClCompile Include="Renderer\GemoetryRender.cpp" />
+    <ClCompile Include="Renderer\GeometricPrimitive.cpp" />
+    <ClCompile Include="Renderer\RenderTarget2D.cpp" />
+    <ClCompile Include="Renderer\Shader.cpp" />
+    <ClCompile Include="Renderer\SwapChain.cpp" />
+    <ClCompile Include="Renderer\VertexTypes.cpp" />
+    <ClCompile Include="Sample\Sample.cpp" />
+    <ClCompile Include="Sample\SnowmanSample.cpp" />
+    <ClCompile Include="Scene\Camera.cpp" />
+    <ClCompile Include="Scene\Component.cpp" />
+    <ClCompile Include="Scene\GameNode.cpp" />
+    <ClCompile Include="Scene\Light.cpp" />
+    <ClCompile Include="Scene\Scene.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\MaterialMgr.cpp" />
+    <ClCompile Include="src\StringHash.cpp" />
+    <ClCompile Include="Windows\D3D11App.cpp" />
+    <ClCompile Include="Windows\GameTimer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BaseCode\BaseFunc.h" />
+    <ClInclude Include="BaseCode\DXFunction.h" />
+    <ClInclude Include="BaseCode\GeometryGens.h" />
+    <ClInclude Include="BaseCode\Texture\dds.h" />
+    <ClInclude Include="BaseCode\Texture\DDSTextureLoader.h" />
+    <ClInclude Include="BaseCode\Texture\pch.h" />
+    <ClInclude Include="BaseCode\Texture\PlatformHelpers.h" />
+    <ClInclude Include="BaseCode\Texture\Texture.h" />
+    <ClInclude Include="BaseCode\Texture\TextureMgr.h" />
+    <ClInclude Include="Framework\AnimationHelper.h" />
+    <ClInclude Include="Framework\Frustum.h" />
+    <ClInclude Include="Framework\GameObject.h" />
+    <ClInclude Include="Framework\SkyBox.h" />
+    <ClInclude Include="include\DirectXHelpers.h" />
+    <ClInclude Include="include\GraphicsDefs.h" />
+    <ClInclude Include="include\HpD3D9Type.h" />
+    <ClInclude Include="include\MaterialMgr.h" />
+    <ClInclude Include="include\object.h" />
+    <ClInclude Include="include\StringHash.h" />
+    <ClInclude Include="Math\MathHelper.h" />
+    <ClInclude Include="Math\SimpleMath.h" />
+    <ClInclude Include="Renderer\CommonStates.h" />
+    <ClInclude Include="Renderer\ConstantBuffer.h" />
+    <ClInclude Include="Renderer\D3D11RendererMaterial.h" />
+    <ClInclude Include="Renderer\DeviceManager.h" />
+    <ClInclude Include="Renderer\GemoetryRender.h" />
+    <ClInclude Include="Renderer\GeometricPrimitive.h" />
+    <ClInclude Include="Renderer\RenderTarget2D.h" />
+    <ClInclude Include="Renderer\Shader.h" />
+    <ClInclude Include="Renderer\SwapChain.h" />
+    <ClInclude Include="Renderer\VertexTypes.h" />
+    <ClInclude Include="Sample\Sample.h" />
+    <ClInclude Include="Sample\SampleBase.h" />
+    <ClInclude Include="Sample\SnowmanSample.h" />
+    <ClInclude Include="Scene\Camera.h" />
+    <ClInclude Include="Scene\Component.h" />
+    <ClInclude Include="Scene\GameNode.h" />
+    <ClInclude Include="Scene\Light.h" />
+    <ClInclude Include="Scene\Scene.h" />
+    <ClInclude Include="Windows\D3D11App.h" />
+    <ClInclude Include="Windows\GameTimer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Math\SimpleMath.inl" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
