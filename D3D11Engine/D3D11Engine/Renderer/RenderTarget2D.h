@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "HpD3D9Type.h"
+#include "CommonDefs.h"
 /************************************************************************/
 /* 
 DXGI_FORMAT_R8G8B8A8_UNORM：每个元素包含 4 个 8 位无符号整数分量，分量的取值范围在[0, 1] 区间 内

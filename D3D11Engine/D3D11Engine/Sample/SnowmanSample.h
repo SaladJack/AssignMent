@@ -37,7 +37,7 @@ private:
 	GameObject boxGO;
 	GameObject handGO;
 
-	Matrix boxSize = Matrix::CreateScale(6.f, 6.f, 6.f);					Matrix boxPos = Matrix::CreateTranslation(15.f, 3.f, 0.f);
+	Matrix boxSize = Matrix::CreateScale(6.f, 6.f, 6.f);					Matrix boxPos = Matrix::CreateTranslation(18.f, 3.f, 0.f);
 	Matrix bodySize = Matrix::CreateScale(3.f, 3.f, 3.f);					Matrix bodyPos = Matrix::CreateTranslation(0.f, 3.f, 0.f);
 	Matrix headSize = Matrix::CreateScale(2.f, 2.f, 2.f);					Matrix headPos = Matrix::CreateTranslation(0.f,7.8f,0.f);
 	Matrix eyeSize  = Matrix::CreateScale(0.2f, 0.2f, 0.2f);				Matrix lEyePos = Matrix::CreateTranslation(-0.5f,9.f,-1.8f); Matrix rEyePos = Matrix::CreateTranslation(0.5f, 9.f, -1.8f);

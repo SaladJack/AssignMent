@@ -1,6 +1,6 @@
 #pragma once
 
-#include "HpD3D9Type.h"
+#include "CommonDefs.h"
 #include "Framework/Frustum.h"
 #include "Component.h"
 #include "Framework/GameObject.h"
@@ -77,9 +77,9 @@ public:
 	Vector3 m_Target;
 	Vector3 m_Up;
 
-	Vector3             m_vRightVector;        // 右分量向量   
-	Vector3             m_vUpVector;           // 上分量向量   
-	Vector3             m_vLookVector;         // 观察方向向量   
+	Vector3             m_vRightVector;
+	Vector3             m_vUpVector;
+	Vector3             m_vLookVector;
 
 
 	float						mFOV;

@@ -1,5 +1,5 @@
 #pragma once
-#include "HpD3D9Type.h"
+#include "CommonDefs.h"
 enum GEOMETRY_TYPE
 {
 	GEOMETRY_TYPE_BOX,

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "StringHash.h"
-#include "HpD3D9Type.h"
+#include "CommonDefs.h"
 
 
 #define OBJECT(typeName) \

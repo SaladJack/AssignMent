@@ -4,7 +4,6 @@
 
 SAMPLE_CPP(SnowmanSample)
 {
-	//m_fxaaEnabled = false;
 	m_fxaaEnabled = true;
 }
 
@@ -29,7 +28,7 @@ void SnowmanSample::InitResource()
 	Quaternion q = Quaternion::CreateFromEulerAngles(pitch_, 0.0f, 0.0f);
 	cameraNode_->SetRotation(q);
 	cameraScreenNode_ = scene_->CreateChild("cameraScreenNode");
-	//Vector3 eyePos(-30.0f, 18.0f, 2.0f);
+	
 	Vector3 eyePos(-30.0f, 40.0f, 2.0f);
 	cameraScreenNode_->SetPosition(eyePos);
 	GameNode* pNode = cameraScreenNode_->CreateChild("CameraNode");
@@ -93,9 +92,14 @@ void SnowmanSample::UpdateScene(float fTotalTime, float fDeltaTime)
 
 	if (KEYDOWN(VK_SPACE))
 	{
-		//m_fxaaEnabled != m_fxaaEnabled;
-		//cameraNode_->SetWorldPosition(boxPos * Matrix::CreateRotationY(XM_PI / 3 * mTimer.TotalTime()));
-		//bFollowBox = !bFollowBox;
+		float cameraX = cameraNode_->GetWorldPosition().x;
+		float cameraZ = cameraNode_->GetWorldPosition().z;
+		Matrix s = boxPos * Matrix::CreateRotationY(XM_PI / 3 * mTimer.TotalTime());
+		float boxX = Vector3::Transform(Vector3::Zero,s).x;
+		float boxZ = Vector3::Transform(Vector3::Zero, s).z;
+		float distance = (cameraX - boxX) * (cameraX - boxX) + (cameraZ - boxZ) * (cameraZ - boxZ);
+		if(distance < 11*11)
+			bFollowBox = !bFollowBox;
 	}
 
 	if (bFollowBox)

@@ -2,7 +2,7 @@
 
 /// Root scene node, represents the whole scene.
 
-#include "HpD3D9Type.h"
+#include "CommonDefs.h"
 #include "GameNode.h"
 
 

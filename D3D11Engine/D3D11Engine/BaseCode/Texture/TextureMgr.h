@@ -1,7 +1,7 @@
 #ifndef TEXTUREMGR_H
 #define TEXTUREMGR_H
 
-#include "HpD3D9Type.h"
+#include "CommonDefs.h"
 #include "Texture.h"
 #include <map>
 #include <vector>

@@ -1,5 +1,5 @@
 #pragma once
-#include "HpD3D9Type.h"
+#include "CommonDefs.h"
 #include "Component.h"
 #include "Framework/Frustum.h"
 /// %Light types.

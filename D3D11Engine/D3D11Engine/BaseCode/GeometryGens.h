@@ -1,6 +1,6 @@
 #ifndef _GEOMETRY_GENS_H_
 #define _GEOMETRY_GENS_H_
-#include "HpD3D9Type.h"
+#include "CommonDefs.h"
 #include <vector>
 
 namespace GeoGen

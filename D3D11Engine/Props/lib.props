@@ -3,15 +3,15 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <OutDir>$(SolutionDir)VS2013_Proj\Tmp\Link\$(ProjectName)\$(ConfigurationName)</OutDir>
-    <IntDir>$(SolutionDir)VS2013_Proj\Tmp\Complie\$(ProjectName)\$(ConfigurationName)</IntDir>
+    <OutDir>$(SolutionDir)build\Tmp\Link\$(ProjectName)\$(ConfigurationName)</OutDir>
+    <IntDir>$(SolutionDir)build\Tmp\Complie\$(ProjectName)\$(ConfigurationName)</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <OutputFile>$(SolutionDir)..\VS2008_Proj\lib\$(ConfigurationName)\$(ProjectName)_d.lib</OutputFile>
+      <OutputFile>$(SolutionDir)build\lib\$(ConfigurationName)\$(ProjectName)_d.lib</OutputFile>
     </Link>
     <Lib>
-      <OutputFile>$(SolutionDir)VS2013_Proj\lib\$(ConfigurationName)\$(ProjectName).lib</OutputFile>
+      <OutputFile>$(SolutionDir)build\lib\$(ConfigurationName)\$(ProjectName).lib</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup />

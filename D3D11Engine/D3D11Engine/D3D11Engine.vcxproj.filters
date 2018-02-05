@@ -143,9 +143,6 @@
     <ClInclude Include="Windows\GameTimer.h">
       <Filter>Windows</Filter>
     </ClInclude>
-    <ClInclude Include="include\HpD3D9Type.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="Sample\Sample.h">
       <Filter>Sample</Filter>
     </ClInclude>
@@ -259,6 +256,9 @@
     </ClInclude>
     <ClInclude Include="Sample\SnowmanSample.h">
       <Filter>Sample</Filter>
+    </ClInclude>
+    <ClInclude Include="include\CommonDefs.h">
+      <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

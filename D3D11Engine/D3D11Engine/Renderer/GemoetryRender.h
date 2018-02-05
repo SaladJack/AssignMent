@@ -1,5 +1,5 @@
 #pragma once
-#include "HpD3D9Type.h"
+#include "CommonDefs.h"
 #include "BaseCode/GeometryGens.h"
 #include "VertexTypes.h"
 class D3D11RendererMaterial;

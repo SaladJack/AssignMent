@@ -11,9 +11,6 @@ GameObject::GameObject()
 {
 	m_strName = "";
 	m_bInitState = false;
-	//	_CrtSetBreakAlloc(531); // 设置在第几次内存分配的时候程序暂停执行，并回复现场
-
-	//_CrtDumpMemoryLeaks(); // 检查当前有哪些内存没有释放.
 }
 
 void GameObject::SetMaterial(std::shared_ptr<class D3D11RendererMaterial> material)
@@ -91,10 +88,9 @@ void GameObject::Render(Matrix world, Matrix view, Matrix proj, bool bTest)
 
 		ID3D11SamplerState* LinearWrap = g_objStates.LinearWrap();
 		pImmediateContext->PSSetSamplers(TU_DIFFUSE, 1, &LinearWrap);
-		//pImmediateContext->OMSetDepthStencilState(g_objStates.DepthDefault(), 1);
-		//pImmediateContext->RSSetState(g_objStates.CullNone());
+		
 		FLOAT BlendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };// 0xFFFFFFFF
-		//pImmediateContext->OMSetBlendState(g_objStates.Opaque(), BlendFactor, 0xFFFFFFFF);
+		
 	}
 	m_MaterialPtr->Apply();
 	GemoetryRenderPtr->render(m_MaterialPtr.get());

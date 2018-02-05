@@ -1,7 +1,7 @@
 #ifndef _TEXTURE_H_
 #define _TEXTURE_H_
 #include <string>
-#include "HpD3D9Type.h"
+#include "CommonDefs.h"
 
 class TextureMgr;
 // Class that wraps information about a texture. This class 

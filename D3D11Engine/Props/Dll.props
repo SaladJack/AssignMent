@@ -3,8 +3,8 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <OutDir>$(SolutionDir)VS2013_Proj\Tmp\Link\$(ProjectName)\$(ConfigurationName)</OutDir>
-    <IntDir>$(SolutionDir)VS2013_Proj\Tmp\Complie\$(ProjectName)\$(ConfigurationName)</IntDir>
+    <OutDir>$(SolutionDir)build\Tmp\Link\$(ProjectName)\$(ConfigurationName)</OutDir>
+    <IntDir>$(SolutionDir)build\Tmp\Complie\$(ProjectName)\$(ConfigurationName)</IntDir>
     <_PropertySheetDisplayName>Dll</_PropertySheetDisplayName>
   </PropertyGroup>
   <ItemDefinitionGroup>
@@ -13,8 +13,8 @@
       <AdditionalIncludeDirectories>include;F:\SDK\SDK\inc;F:\Dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <OutputFile>$(SolutionDir)VS2013_Proj\Bin\$(ConfigurationName)\$(ProjectName).dll</OutputFile>
-      <ImportLibrary>$(SolutionDir)VS2013_Proj\Lib\$(ConfigurationName)\$(TargetName).lib</ImportLibrary>
+      <OutputFile>$(SolutionDir)build\Bin\$(ConfigurationName)\$(ProjectName).dll</OutputFile>
+      <ImportLibrary>$(SolutionDir)build\Lib\$(ConfigurationName)\$(TargetName).lib</ImportLibrary>
       <AdditionalLibraryDirectories>F:\SDK\SDK\lib;F:\Dependencies\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

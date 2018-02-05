@@ -1,5 +1,5 @@
 #pragma once
-#include "HpD3D9Type.h"
+#include "CommonDefs.h"
 #include "Renderer/D3D11RendererMaterial.h"
 typedef std::shared_ptr<class D3D11RendererMaterial> MaterialPtr;
 class MaterialMgr

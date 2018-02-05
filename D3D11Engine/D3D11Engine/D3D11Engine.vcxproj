@@ -127,7 +127,7 @@
     <ClInclude Include="Framework\SkyBox.h" />
     <ClInclude Include="include\DirectXHelpers.h" />
     <ClInclude Include="include\GraphicsDefs.h" />
-    <ClInclude Include="include\HpD3D9Type.h" />
+    <ClInclude Include="include\CommonDefs.h" />
     <ClInclude Include="include\MaterialMgr.h" />
     <ClInclude Include="include\object.h" />
     <ClInclude Include="include\StringHash.h" />
